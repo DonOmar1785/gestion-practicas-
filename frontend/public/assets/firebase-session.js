@@ -99,6 +99,7 @@ async function protectCurrentPage() {
     nombre: profile.name,
     rol: uiRole,
     correo: profile.email,
+    semestre: profile.semester,
     activo: true,
   };
   subscribeToDataChanges(auth);

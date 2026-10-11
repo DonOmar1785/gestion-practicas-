@@ -11,6 +11,93 @@ test("user creation rejects invalid roles before calling Firebase or Supabase", 
     firebaseAuth: {},
   });
 
+  test("student creation requires a valid semester", async () => {
+    let firebaseCalled = false;
+    const service = createUserService({
+      supabase: {},
+      firebaseAuth: {
+        async createUser() {
+          firebaseCalled = true;
+        },
+      },
+    });
+
+    await assert.rejects(service.create({
+      correo: "estudiante@example.test",
+      password: "password123",
+      nombreCompleto: "Estudiante",
+      rol: "estudiante",
+      idPrograma: 1,
+      semestre: 9,
+    }), { status: 400, message: "Selecciona un semestre válido entre 1 y 8." });
+    assert.equal(firebaseCalled, false);
+  });
+
+  test("student creation persists the selected semester in the student profile", async () => {
+    const inserts = [];
+    const service = createUserService({
+      supabase: {
+        from(table) {
+          const query = {
+            insert(value) {
+              inserts.push({ table, value });
+              return this;
+            },
+            select() {
+              return this;
+            },
+            single() {
+              return Promise.resolve({
+                data: {
+                  id_usuario: 50,
+                  nombre_completo: "Estudiante de prueba",
+                  rol: "estudiante",
+                  correo: "estudiante@example.test",
+                  estado: "Activo",
+                },
+                error: null,
+              });
+            },
+            then(resolve, reject) {
+              return Promise.resolve({ error: null }).then(resolve, reject);
+            },
+          };
+          return query;
+        },
+      },
+      firebaseAuth: {
+        async createUser() {
+          return { uid: "firebase-student" };
+        },
+      },
+    });
+
+    await service.create({
+      correo: "estudiante@example.test",
+      password: "password123",
+      nombreCompleto: "Estudiante de prueba",
+      rol: "estudiante",
+      idPrograma: 4,
+      semestre: 5,
+    });
+    assert.deepEqual(inserts, [
+      {
+        table: "usuario",
+        value: {
+          uid_firebase: "firebase-student",
+          nombre_completo: "Estudiante de prueba",
+          rol: "estudiante",
+          correo: "estudiante@example.test",
+          estado: "Activo",
+        },
+      },
+      {
+        table: "estudiante",
+        value: { id_estudiante: 50, id_programa: 4, semestre: 5 },
+      },
+    ]);
+  });
+
   await assert.rejects(
     service.create({
       correo: "user@example.test",
@@ -151,6 +238,10 @@ test("user updates synchronize the normalized name and email with Firebase", asy
       },
     },
     firebaseAuth: {
+      async getUser(uid) {
+        assert.equal(uid, "firebase-22");
+        return { emailVerified: true };
+      },
       async updateUser(uid, changes) {
         firebaseUpdates.push({ uid, changes });
       },
@@ -165,8 +256,52 @@ test("user updates synchronize the normalized name and email with Firebase", asy
   assert.equal(result.correo, "new@example.test");
   assert.deepEqual(firebaseUpdates, [{
     uid: "firebase-22",
-    changes: { displayName: "Nombre nuevo", email: "new@example.test" },
+    changes: { displayName: "Nombre nuevo", email: "new@example.test", emailVerified: false },
   }]);
+});
+
+test("user updates persist semester only on the student profile", async () => {
+  let semesterChange;
+  const current = {
+    id_usuario: 22,
+    uid_firebase: "firebase-22",
+    nombre_completo: "Estudiante",
+    correo: "student@example.test",
+    rol: "Estudiante",
+    estado: "Activo",
+    estudiante: { id_estudiante: 22, semestre: 2 },
+  };
+  const service = createUserService({
+    supabase: {
+      from(table) {
+        const query = {
+          select() {
+            return this;
+          },
+          eq() {
+            return this;
+          },
+          maybeSingle() {
+            return Promise.resolve({ data: current, error: null });
+          },
+          update(changes) {
+            assert.equal(table, "estudiante");
+            semesterChange = changes;
+            return this;
+          },
+          then(resolve, reject) {
+            return Promise.resolve({ error: null }).then(resolve, reject);
+          },
+        };
+        return query;
+      },
+    },
+    firebaseAuth: {},
+  });
+
+  const result = await service.update(22, { semestre: 6 });
+  assert.equal(result.semestre, 6);
+  assert.deepEqual(semesterChange, { semestre: 6 });
 });
 
 test("DOCX question importer requires a file and reports a useful validation error", async () => {

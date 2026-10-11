@@ -19,6 +19,9 @@ export function createAuthenticate({ firebaseAuth, userService }) {
     } catch {
       throw new AppError(401, "El token de Firebase no es válido o expiró.");
     }
+    if (decodedToken.email_verified !== true) {
+      throw new AppError(403, "Verifica tu correo electrónico desde el enlace enviado por Firebase.");
+    }
 
     const user = await userService.findActiveByFirebaseUid(decodedToken.uid);
     if (!user) {

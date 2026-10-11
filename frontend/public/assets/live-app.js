@@ -12,6 +12,7 @@ const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character
 const pages = {
   director: { title: "Panel de control", resources: ["reports/summary", "users", "practices", "audit"] },
   "gestion-academica": { title: "Gestión académica", resources: ["users", "programs", "institutions"] },
+  estudiante: { title: "Panel del estudiante", resources: ["assignments", "logbooks", "documents"] },
   "mi-practica": { title: "Mi práctica", resources: ["assignments"] },
   bitacora: { title: "Bitácoras", resources: ["sessions", "logbooks", "assignments"] },
   documentos: { title: "Documentos", resources: ["documents", "assignments"] },
@@ -27,6 +28,49 @@ const pages = {
   seguimiento: { title: "Seguimiento", resources: ["assignments", "logbooks", "documents"] },
   reportes: { title: "Reportes", resources: ["reports/summary", "assignments", "logbooks", "documents"] },
   auditoria: { title: "Auditoría", resources: ["audit"] },
+};
+
+const semesterGuides = {
+  1: {
+    title: "Observación del ambiente pedagógico",
+    description: "Reconoce cómo el espacio, el mobiliario y los materiales favorecen el aprendizaje y el bienestar de los niños.",
+    focus: ["Organización de aulas, muebles y rincones de aprendizaje", "Materiales disponibles y adecuados para los niños", "Condiciones del espacio y oportunidades de mejora"],
+  },
+  2: {
+    title: "Observación de la práctica docente",
+    description: "Analiza el quehacer del maestro y sus interacciones en el aula.",
+    focus: ["Actividades de aprendizaje y actividades rectoras", "Relación del docente con los niños y las familias", "Materiales y estrategias pedagógicas observadas"],
+  },
+  3: {
+    title: "Investigación en gerencia educativa",
+    description: "Comprende la gestión y organización de una institución educativa.",
+    focus: ["Procesos de matrícula y gestión institucional", "Funciones de rectoría, coordinación y secretaría", "Registros y recursos para la administración educativa"],
+  },
+  4: {
+    title: "Práctica en espacios no convencionales",
+    description: "Planea, desarrolla y reflexiona sobre experiencias pedagógicas fuera del aula escolar convencional.",
+    focus: ["Contexto: parques, bibliotecas, hospitales u otros espacios", "Planeación y desarrollo de una clase", "Evidencias y reflexión sobre la experiencia"],
+  },
+  5: {
+    title: "Práctica con primera infancia (0–3 años)",
+    description: "Observa y analiza los procesos pedagógicos con niños y niñas de cero a tres años.",
+    focus: ["Contexto de jardines infantiles o CDI", "Experiencias y ambientes para primera infancia", "Acompañamiento y referentes institucionales pertinentes"],
+  },
+  6: {
+    title: "Práctica con niños de 3–6 años y anteproyecto",
+    description: "Delimita un tema de investigación y consolida el anteproyecto a partir de las experiencias de práctica.",
+    focus: ["Experiencias pedagógicas con niños de 3–6 años", "Identificación y delimitación del tema de investigación", "Avance del anteproyecto"],
+  },
+  7: {
+    title: "Implementación del proyecto de investigación",
+    description: "Desarrolla en la institución educativa el proyecto de práctica e investigación acordado.",
+    focus: ["Implementación del anteproyecto o vinculación a un proyecto docente", "Registro sistemático de las experiencias", "Análisis de avances y evidencias"],
+  },
+  8: {
+    title: "Implementación del proyecto de investigación",
+    description: "Continúa la implementación del proyecto de práctica e investigación en la institución educativa.",
+    focus: ["Implementación del anteproyecto o vinculación a un proyecto docente", "Registro sistemático de las experiencias", "Análisis de avances y evidencias"],
+  },
 };
 
 const names = {
@@ -101,6 +145,32 @@ function display(value) {
       .join(" · ");
   }
   return String(value);
+}
+
+function renderSemesterGuide(main) {
+  const semester = Number(currentUser().semestre);
+  const guide = semesterGuides[semester];
+  const section = addSection(
+    main,
+    guide ? `Tu ruta del semestre ${semester}: ${guide.title}` : "Tu ruta de práctica",
+  );
+  if (!guide) {
+    section.append(element(
+      "p",
+      "Tu perfil todavía no tiene un semestre válido asignado. Solicita al Director que actualice tu semestre para mostrar la ruta de práctica correspondiente.",
+      "ayuda",
+    ));
+    return;
+  }
+  section.append(element("p", guide.description));
+  const list = element("ul", undefined, "semester-focus-list");
+  for (const item of guide.focus) list.append(element("li", item));
+  section.append(list);
+  section.append(element(
+    "p",
+    "Las preguntas y entregas de tus bitácoras son configuradas por el Director o tutor académico según tu práctica.",
+    "ayuda",
+  ));
 }
 
 function element(tag, text, className) {
@@ -184,16 +254,21 @@ function renderManagementTable(section, rows, resource, idField, editableFields)
     const editButton = element("button", "Modificar", "btn-mini");
     editButton.type = "button";
     editButton.addEventListener("click", () => {
+      const rowEditableFields = editableFields.filter((field) => !field.when || field.when(row));
       for (let index = 0; index < keys.length; index += 1) {
         const key = keys[index];
-        const field = editableFields.find((item) => item.key === key);
+        const field = rowEditableFields.find((item) => item.key === key);
         if (!field) continue;
         const input = document.createElement("input");
         input.type = field.type || "text";
         input.name = key;
         input.value = row[key] ?? "";
         input.required = field.required === true;
-        if (field.type === "number") input.step = "1";
+        if (field.type === "number") {
+          input.step = "1";
+          if (field.min !== undefined) input.min = String(field.min);
+          if (field.max !== undefined) input.max = String(field.max);
+        }
         tableRow.children[index].replaceChildren(input);
       }
       actions.replaceChildren();
@@ -201,7 +276,7 @@ function renderManagementTable(section, rows, resource, idField, editableFields)
       saveButton.type = "button";
       saveButton.addEventListener("click", async () => {
         const changes = {};
-        for (const field of editableFields) {
+        for (const field of rowEditableFields) {
           const input = tableRow.querySelector(`[name="${field.key}"]`);
           if (!input) continue;
           const value = input.value.trim();
@@ -250,6 +325,14 @@ function renderManagementTable(section, rows, resource, idField, editableFields)
 const userEditableFields = [
   { key: "nombre_completo", required: true },
   { key: "correo", type: "email", required: true },
+  {
+    key: "semestre",
+    type: "number",
+    required: true,
+    min: 1,
+    max: 8,
+    when: (user) => String(user.rol).toLowerCase() === "estudiante",
+  },
 ];
 const institutionEditableFields = [
   { key: "nombre_institucion", required: true },
@@ -309,6 +392,7 @@ async function renderPage(main, page) {
       }
     }
   }
+  if (currentUser().rol === "estudiante") renderSemesterGuide(main);
   if (pageKeyForForms === "director") {
     const summary = data["reports/summary"] || {};
     const stats = addSection(main, "Resumen actual");
@@ -354,8 +438,23 @@ function renderAcademicForms(main, data) {
       <select name="idPrograma"><option value="">Programa del estudiante</option>${programs.map((item) =>
         `<option value="${escapeHtml(item.id_programa)}">${escapeHtml(item.nombre_programa)}</option>`
       ).join("")}</select>
+      <select name="semestre"><option value="">Semestre del estudiante</option>${Array.from({ length: 8 }, (_, index) =>
+        `<option value="${index + 1}">Semestre ${index + 1}</option>`
+      ).join("")}</select>
       <button class="btn-form">Crear cuenta</button>
     </form>`);
+  const roleSelect = $("liveUserForm").elements.rol;
+  const programSelect = $("liveUserForm").elements.idPrograma;
+  const semesterSelect = $("liveUserForm").elements.semestre;
+  const updateStudentFields = () => {
+    const isStudent = roleSelect.value === "estudiante";
+    programSelect.required = isStudent;
+    semesterSelect.required = isStudent;
+    programSelect.hidden = !isStudent;
+    semesterSelect.hidden = !isStudent;
+  };
+  roleSelect.addEventListener("change", updateStudentFields);
+  updateStudentFields();
   $("liveUserForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -368,7 +467,10 @@ function renderAcademicForms(main, data) {
           password: form.get("password"),
           rol: form.get("rol"),
           ...(form.get("rol") === "estudiante"
-            ? { idPrograma: Number(form.get("idPrograma")) }
+            ? {
+                idPrograma: Number(form.get("idPrograma")),
+                semestre: Number(form.get("semestre")),
+              }
             : {}),
         }),
       });
@@ -696,6 +798,17 @@ function renderPracticeForms(main, data) {
   $("livePracticeForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const selectedStudent = students.find((student) =>
+      Number(student.id_usuario) === Number(form.get("student"))
+    );
+    if (!selectedStudent?.semestre || Number(selectedStudent.semestre) < 1 || Number(selectedStudent.semestre) > 8) {
+      window.alert("Asigna un semestre al estudiante antes de crear su práctica.");
+      return;
+    }
+    if (Number(selectedStudent.id_programa) !== Number(form.get("program"))) {
+      window.alert("El programa seleccionado debe coincidir con el programa del estudiante.");
+      return;
+    }
     try {
       const practice = await window.apiRequest("/practices", {
         method: "POST",
@@ -708,6 +821,7 @@ function renderPracticeForms(main, data) {
           estado_seg: "Pendiente",
           id_programa: Number(form.get("program")),
           id_ciclo: Number(form.get("cycle")),
+          semestre: Number(selectedStudent.semestre),
         }),
       });
       await window.apiRequest("/assignments", {
@@ -730,8 +844,16 @@ function renderPracticeForms(main, data) {
 
 function renderLogbookForm(main, data) {
   const formSection = addSection(main, "Registrar bitácora");
-  const assignments = data.assignments || [];
-  const sessions = data.sessions || [];
+  const semester = Number(currentUser().semestre);
+  const assignments = (data.assignments || []).filter((assignment) =>
+    !assignment.practica?.semestre || Number(assignment.practica.semestre) === semester
+  );
+  const assignmentPracticeIds = new Set(assignments.map((assignment) =>
+    Number(assignment.id_practica)
+  ));
+  const sessions = (data.sessions || []).filter((session) =>
+    !session.id_practica || assignmentPracticeIds.has(Number(session.id_practica))
+  );
   formSection.insertAdjacentHTML("beforeend", `
     <form id="liveLogbookForm" class="form-grid">
       <select name="assignment" required><option value="">Mi asignación</option>${assignments.map((item) =>
@@ -921,7 +1043,7 @@ async function start() {
   const menu = $("menuLateral");
   if (menu) {
     const entries = {
-      estudiante: [["Panel", "02-estudiante.html"], ["Mi práctica", "03-practicas_estudiante.html"], ["Bitácoras", "04-bitacora.html"], ["Documentos", "05-documento_estudiante.html"]],
+      estudiante: [[user.semestre ? `Panel · Semestre ${user.semestre}` : "Panel", "02-estudiante.html"], ["Mi práctica", "03-practicas_estudiante.html"], ["Bitácoras", "04-bitacora.html"], ["Documentos", "05-documento_estudiante.html"]],
       docente: [["Panel", "06-docente.html"], ["Revisión", "07-revision_bitacora.html"], ["Evaluaciones", "08-observaciones.html"], ["Formulario", "18-formulario_bitacora.html"]],
       asesor: [["Panel", "09-asesor.html"], ["Seguimiento", "10-seguimiento_estudiantes.html"], ["Horas", "11-horas_reportes.html"]],
       director: [["Panel", "12-director.html"], ["Gestión académica", "13-gestion_academica.html"], ["Prácticas", "14-gestion_practicas.html"], ["Formulario", "18-formulario_bitacora.html"], ["Reportes", "16-reportes.html"], ["Auditoría", "19-auditoria.html"]],

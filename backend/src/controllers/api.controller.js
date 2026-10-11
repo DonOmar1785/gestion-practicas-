@@ -8,6 +8,7 @@ export function createApiController(services) {
         name: req.actor.nombre_completo,
         email: req.actor.correo,
         role: req.actor.role,
+        semester: req.actor.semestre,
       });
     },
 

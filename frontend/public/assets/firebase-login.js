@@ -4,6 +4,7 @@ import {
   browserSessionPersistence,
   getAuth,
   onAuthStateChanged,
+  sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
@@ -41,6 +42,25 @@ const landingPage = {
 };
 
 async function loadProfile(user) {
+  if (!user.emailVerified) {
+    try {
+      await sendEmailVerification(user);
+      showMessage(
+        "Debes verificar que tienes acceso a este correo. Te enviamos un enlace de verificación; confírmalo y vuelve a iniciar sesión.",
+        "info",
+      );
+    } catch (error) {
+      console.error("No se pudo enviar el correo de verificación de Firebase:", error);
+      showMessage(
+        error.code === "auth/too-many-requests"
+          ? "Firebase limitó temporalmente los correos de verificación. Espera unos minutos e inténtalo de nuevo."
+          : "No se pudo enviar el correo de verificación. Confirma que la dirección sea correcta o contacta al Director.",
+      );
+    }
+    if (auth.currentUser) await signOut(auth);
+    return;
+  }
+
   const token = await user.getIdToken();
   const response = await fetch("/api/me", {
     headers: { Authorization: `Bearer ${token}` },
@@ -80,6 +100,11 @@ form.addEventListener("submit", async (event) => {
   const password = passwordInput.value;
   if (!email || !password) {
     showMessage("Ingresa tu correo y contraseña.");
+    return;
+  }
+  if (!emailInput.validity.valid) {
+    showMessage("Escribe un correo electrónico válido.");
+    emailInput.focus();
     return;
   }
 

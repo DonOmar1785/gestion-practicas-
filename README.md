@@ -18,16 +18,22 @@ Se requiere Node.js 22 o superior.
    permisos de base de datos a `service_role`, que solo usa el backend.
 2. Ejecuta `backend/database/migrations/001_logbook_sessions.sql` en el SQL Editor
    de Supabase. Añade sesiones de bitácora, preguntas configurables, respuestas,
-   modalidad, semestre, tipo de práctica y horarios de ingreso/salida, y concede
+   modalidad, semestre de práctica, tipo de práctica y horarios de ingreso/salida, y concede
    a `service_role` acceso a las tablas y secuencias nuevas.
-3. En Firebase habilita el proveedor de autenticación **Correo/contraseña** y
-   crea una clave de cuenta de servicio para Firebase Admin. Guarda ese archivo
+3. Ejecuta `backend/database/migrations/002_student_semester.sql` para añadir el
+   semestre (1–8) al perfil del estudiante. Asigna el semestre actual a cada
+   estudiante existente desde la gestión académica.
+4. En Firebase habilita el proveedor de autenticación **Correo/contraseña** y
+   activa la verificación de correo y agrega el dominio de producción a los
+   dominios autorizados. El usuario debe abrir el enlace de verificación antes
+   de poder acceder a la API.
+5. Crea una clave de cuenta de servicio para Firebase Admin. Guarda ese archivo
    fuera del proyecto; no lo subas al repositorio.
-4. Copia `.env.example` a `.env` y completa la URL del proyecto Supabase,
+6. Copia `.env.example` a `.env` y completa la URL del proyecto Supabase,
    `SUPABASE_SERVICE_ROLE_KEY`, el ID del proyecto Firebase, la configuración web
    pública de Firebase y la ruta local de la cuenta de servicio. La contraseña
    PostgreSQL no sustituye la URL ni la `service_role` key de Supabase.
-5. Crea la primera cuenta de Firebase Auth en la consola. Con su UID de Firebase,
+7. Crea la primera cuenta de Firebase Auth en la consola. Con su UID de Firebase,
    crea su fila en `usuario` con rol `director` y la fila correspondiente en
    `director`; por ejemplo, sustituyendo los tres valores:
 
@@ -42,7 +48,7 @@ Se requiere Node.js 22 o superior.
    ```
 
    Desde esa cuenta ya se pueden crear los demás usuarios usando la API.
-6. Instala e inicia:
+8. Instala e inicia:
 
    ```powershell
    npm.cmd install
@@ -72,6 +78,12 @@ clave de servicio de Supabase solo se leen en el backend desde variables de ento
 
 Las rutas protegidas reciben un encabezado `Authorization` con el esquema
 `Bearer` y el Firebase ID token.
+Firebase Auth autentica la cuenta y la API exige además que el correo esté
+verificado; los correos no existentes o sin acceso al buzón no pueden completar
+la verificación ni entrar al sistema. Los estudiantes tienen un semestre (1–8)
+en su perfil de Supabase; el panel muestra la etapa de práctica descrita para
+ese semestre y las bitácoras siguen usando las preguntas configuradas por el
+Director o tutor académico.
 
 | Método | Ruta | Acceso |
 |---|---|---|

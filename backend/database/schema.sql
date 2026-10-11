@@ -46,7 +46,9 @@ create table if not exists public.programa_academico (
 
 create table if not exists public.estudiante (
   id_estudiante integer primary key references public.usuario(id_usuario) on delete cascade,
-  id_programa integer references public.programa_academico(id_programa)
+  id_programa integer references public.programa_academico(id_programa),
+  semestre smallint,
+  constraint estudiante_semestre_valido check (semestre is null or semestre between 1 and 8)
 );
 
 create table if not exists public.ciclo_practica (

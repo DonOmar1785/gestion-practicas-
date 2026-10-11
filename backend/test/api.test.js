@@ -10,6 +10,7 @@ const profile = {
   rol: "Estudiante",
   correo: "estudiante@example.test",
   estado: "Activo",
+  estudiante: { semestre: 3 },
 };
 
 const supabase = {
@@ -34,8 +35,11 @@ const supabase = {
 
 const firebaseAuth = {
   async verifyIdToken(token) {
-    if (token !== "valid-token") throw new Error("invalid token");
-    return { uid: profile.uid_firebase };
+    if (!["valid-token", "unverified-token"].includes(token)) throw new Error("invalid token");
+    return {
+      uid: profile.uid_firebase,
+      email_verified: token === "valid-token",
+    };
   },
 };
 
@@ -75,7 +79,16 @@ test("profile endpoint verifies Firebase and returns the database role", async (
     name: "Estudiante de prueba",
     email: "estudiante@example.test",
     role: "estudiante",
+    semester: 3,
   });
+});
+
+test("unverified Firebase email cannot access protected API endpoints", async () => {
+  const response = await fetch(url("/api/me"), {
+    headers: { Authorization: "Bearer unverified-token" },
+  });
+  assert.equal(response.status, 403);
+  assert.match((await response.json()).error, /Verifica tu correo electrónico/);
 });
 
 test("authenticated clients can open the live update stream", async () => {

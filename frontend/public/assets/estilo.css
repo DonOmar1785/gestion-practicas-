@@ -851,6 +851,7 @@ td{
 .btn-mini:hover{ background:#12556b; }
 .btn-mini.verde{ background:#198754; }
 .btn-mini.verde:hover{ background:#146c43; }
+.semester-focus-list{ margin:12px 0 12px 22px; line-height:1.7; }
 
 /* Botón secundario (cancelar) */
 .btn-secundario{

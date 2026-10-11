@@ -10,32 +10,36 @@ export function createUserService({ supabase, firebaseAuth }) {
     async findActiveByFirebaseUid(uid) {
       const { data, error } = await supabase
         .from("usuario")
-        .select("id_usuario, uid_firebase, nombre_completo, rol, correo, estado")
+        .select("id_usuario, uid_firebase, nombre_completo, rol, correo, estado, estudiante(semestre)")
         .eq("uid_firebase", uid)
         .eq("estado", "Activo")
         .maybeSingle();
 
       throwDatabaseError(error);
-      return data;
+      if (!data) return data;
+      const { estudiante, ...user } = data;
+      return { ...user, semestre: estudiante?.semestre ?? null };
     },
 
     async list() {
       const { data, error } = await supabase
         .from("usuario")
-        .select("id_usuario, nombre_completo, rol, correo, estado, estudiante(id_programa)")
+        .select("id_usuario, nombre_completo, rol, correo, estado, estudiante(id_programa, semestre)")
         .order("nombre_completo");
 
       throwDatabaseError(error);
       return data.map(({ estudiante, ...user }) => ({
         ...user,
         id_programa: estudiante?.id_programa ?? null,
+        semestre: estudiante?.semestre ?? null,
       }));
     },
 
     async create(input) {
-      const { correo, password, nombreCompleto, rol, idPrograma } = input;
+      const { correo, password, nombreCompleto, rol, idPrograma, semestre } = input ?? {};
       if (
         typeof correo !== "string" ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim()) ||
         typeof password !== "string" ||
         password.length < 8 ||
         typeof nombreCompleto !== "string" ||
@@ -47,8 +51,13 @@ export function createUserService({ supabase, firebaseAuth }) {
           "Indica nombre, correo, contraseña de al menos 8 caracteres y un rol válido.",
         );
       }
-      if (rol === "estudiante" && !Number.isInteger(Number(idPrograma))) {
-        throw new AppError(400, "El estudiante debe tener un programa académico.");
+      if (rol === "estudiante") {
+        if (!Number.isInteger(Number(idPrograma)) || Number(idPrograma) < 1) {
+          throw new AppError(400, "El estudiante debe tener un programa académico.");
+        }
+        if (!Number.isInteger(Number(semestre)) || Number(semestre) < 1 || Number(semestre) > 8) {
+          throw new AppError(400, "Selecciona un semestre válido entre 1 y 8.");
+        }
       }
 
       let firebaseUser;
@@ -85,7 +94,10 @@ export function createUserService({ supabase, firebaseAuth }) {
 
         const roleModel = USER_ROLE_MODELS[rol];
         const childProfile = { [roleModel.foreignKey]: profile.id_usuario };
-        if (rol === "estudiante") childProfile.id_programa = Number(idPrograma);
+        if (rol === "estudiante") {
+          childProfile.id_programa = Number(idPrograma);
+          childProfile.semestre = Number(semestre);
+        }
 
         const { error: childError } = await supabase
           .from(roleModel.table)
@@ -118,7 +130,7 @@ export function createUserService({ supabase, firebaseAuth }) {
       }
       const { data: current, error: lookupError } = await supabase
         .from("usuario")
-        .select("id_usuario, uid_firebase, nombre_completo, correo")
+        .select("id_usuario, uid_firebase, nombre_completo, correo, rol, estado, estudiante(id_estudiante)")
         .eq("id_usuario", id)
         .maybeSingle();
       throwDatabaseError(lookupError);
@@ -129,50 +141,128 @@ export function createUserService({ supabase, firebaseAuth }) {
         if (typeof input.nombre_completo !== "string" || !input.nombre_completo.trim()) {
           throw new AppError(400, "El nombre del usuario no puede estar vacío.");
         }
-        body.nombre_completo = input.nombre_completo.trim();
+        const nombreCompleto = input.nombre_completo.trim();
+        if (nombreCompleto !== current.nombre_completo) body.nombre_completo = nombreCompleto;
       }
       if (input?.correo !== undefined) {
         if (typeof input.correo !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.correo)) {
           throw new AppError(400, "Indica un correo electrónico válido.");
         }
-        body.correo = input.correo.trim().toLowerCase();
+        const correo = input.correo.trim().toLowerCase();
+        if (correo !== current.correo.toLowerCase()) body.correo = correo;
       }
-      if (!Object.keys(body).length) {
-        throw new AppError(400, "Indica el nombre o correo que deseas modificar.");
+      const changesSemester = input?.semestre !== undefined;
+      if (changesSemester) {
+        if (!current.estudiante) {
+          throw new AppError(400, "El semestre solo se puede asignar a un estudiante.");
+        }
+        if (!Number.isInteger(Number(input.semestre)) || Number(input.semestre) < 1 || Number(input.semestre) > 8) {
+          throw new AppError(400, "Selecciona un semestre válido entre 1 y 8.");
+        }
+      }
+      if (!Object.keys(body).length && !changesSemester) {
+        throw new AppError(400, "Indica el nombre, correo o semestre que deseas modificar.");
       }
 
       const firebaseUpdates = {};
       if (body.nombre_completo) firebaseUpdates.displayName = body.nombre_completo;
-      if (body.correo) firebaseUpdates.email = body.correo;
-      try {
-        await firebaseAuth.updateUser(current.uid_firebase, firebaseUpdates);
-      } catch (error) {
-        if (error.code === "auth/email-already-exists") {
-          throw new AppError(409, "Ya existe una cuenta con ese correo.");
+      let previousEmailVerified;
+      if (body.correo) {
+        const firebaseUser = await firebaseAuth.getUser(current.uid_firebase);
+        previousEmailVerified = firebaseUser.emailVerified;
+        firebaseUpdates.email = body.correo;
+        firebaseUpdates.emailVerified = false;
+      }
+      if (Object.keys(firebaseUpdates).length) {
+        try {
+          await firebaseAuth.updateUser(current.uid_firebase, firebaseUpdates);
+        } catch (error) {
+          if (error.code === "auth/email-already-exists") {
+            throw new AppError(409, "Ya existe una cuenta con ese correo.");
+          }
+          throw error;
         }
-        throw error;
       }
 
-      const { data, error } = await supabase
-        .from("usuario")
-        .update(body)
-        .eq("id_usuario", id)
-        .select("id_usuario, nombre_completo, rol, correo, estado")
-        .single();
+      let data = {
+        id_usuario: current.id_usuario,
+        nombre_completo: body.nombre_completo ?? current.nombre_completo,
+        correo: body.correo ?? current.correo,
+        rol: current.rol,
+        estado: current.estado,
+      };
+      let error = null;
+      if (Object.keys(body).length) {
+        ({ data, error } = await supabase
+          .from("usuario")
+          .update(body)
+          .eq("id_usuario", id)
+          .select("id_usuario, nombre_completo, rol, correo, estado")
+          .single());
+      } else {
+        data = {
+          id_usuario: current.id_usuario,
+          nombre_completo: current.nombre_completo,
+          rol: current.rol,
+          correo: current.correo,
+          estado: current.estado,
+        };
+      }
       if (error) {
-        try {
-          await firebaseAuth.updateUser(current.uid_firebase, {
-            displayName: current.nombre_completo,
-            email: current.correo,
-          });
-        } catch (rollbackError) {
-          console.error("No se pudo revertir el perfil actualizado en Firebase:", rollbackError);
+        if (Object.keys(firebaseUpdates).length) {
+          try {
+            await firebaseAuth.updateUser(current.uid_firebase, {
+              displayName: current.nombre_completo,
+              email: current.correo,
+              ...(previousEmailVerified === undefined
+                ? {}
+                : { emailVerified: previousEmailVerified }),
+            });
+          } catch (rollbackError) {
+            console.error("No se pudo revertir el perfil actualizado en Firebase:", rollbackError);
+          }
         }
         if (error.code === "23505") {
           throw new AppError(409, "Ya existe un usuario con ese correo.");
         }
+        throwDatabaseError(error);
       }
-      throwDatabaseError(error);
+      if (changesSemester) {
+        const { error: semesterError } = await supabase
+          .from("estudiante")
+          .update({ semestre: Number(input.semestre) })
+          .eq("id_estudiante", id);
+        if (semesterError) {
+          console.error("No se pudo actualizar el semestre del estudiante en Supabase:", semesterError);
+          if (Object.keys(body).length) {
+            const { error: profileRollbackError } = await supabase
+              .from("usuario")
+              .update({
+                nombre_completo: current.nombre_completo,
+                correo: current.correo,
+              })
+              .eq("id_usuario", id);
+            if (profileRollbackError) {
+              console.error("No se pudo revertir el perfil de usuario:", profileRollbackError);
+            }
+            if (Object.keys(firebaseUpdates).length) {
+              try {
+                await firebaseAuth.updateUser(current.uid_firebase, {
+                  displayName: current.nombre_completo,
+                  email: current.correo,
+                  ...(previousEmailVerified === undefined
+                    ? {}
+                    : { emailVerified: previousEmailVerified }),
+                });
+              } catch (rollbackError) {
+                console.error("No se pudo revertir el perfil actualizado en Firebase:", rollbackError);
+              }
+            }
+          }
+          throwDatabaseError(semesterError);
+        }
+        data.semestre = Number(input.semestre);
+      }
       return data;
     },
 
