@@ -1,0 +1,1087 @@
+*{/* Selector universal que aplica estilos a todos los elementos */
+    margin:0;/* Elimina los márgenes predeterminados */
+    padding:0;/* Elimina los espacios internos predeterminados */
+    box-sizing:border-box;/* Incluye bordes y rellenos dentro del tamaño total */
+}
+
+body{/* Cuerpo principal de la página */
+    font-family:Arial, sans-serif;/* Define la fuente principal */
+    background:#f4f6f9;/* Color de fondo general */
+}
+
+/* LOGIN */
+
+/* Configuración de la página de inicio de sesión */
+.login-body{
+    min-height:100vh;/* Ocupa toda la altura de la ventana */
+    display:flex;/* Activa Flexbox */
+    justify-content:center;/* Centra horizontalmente */
+    align-items:center;/* Centra verticalmente */
+    background:linear-gradient(135deg,#163b52,#176b87);/* Fondo degradado */
+}
+
+/* Contenedor principal del login */
+.login-container{
+    width:420px;/* Ancho fijo del formulario */
+    background:white;/* Fondo blanco */
+    padding:40px;/* Espaciado interno */
+    border-radius:12px;/* Bordes redondeados */
+    box-shadow:0 5px 20px rgba(0,0,0,.2);/* Sombra exterior */
+}
+
+/* Logo del sistema */
+.logo{
+    width:70px;/* Ancho del logo */
+    height:70px;/* Alto del logo */
+    background:#176b87;/* Color de fondo */
+    color:white;/* Color del texto */
+    border-radius:10px;/* Bordes redondeados */
+
+    display:flex;/* Activa Flexbox */
+    justify-content:center;/* Centra horizontalmente */
+    align-items:center;/* Centra verticalmente */
+
+    font-size:24px;/* Tamaño del texto */
+    font-weight:bold;/* Texto en negrita */
+
+    margin:auto;/* Centra el elemento */
+}
+
+/* Título principal del login */
+.login-container h1{
+    text-align:center;/* Centra el texto */
+    margin:20px 0 10px;/* Espaciado superior e inferior */
+}
+
+/* Texto descriptivo debajo del título */
+.login-subtitle{
+    text-align:center;/* Centra el texto */
+    color:#666;/* Color gris */
+    margin-bottom:25px;/* Espacio inferior */
+}
+
+/* Grupo de campos del formulario */
+.input-group{
+    margin-bottom:15px;/* Separación entre campos */
+}
+
+/* Etiquetas de los campos */
+.input-group label{
+    display:block;/* Ocupa toda la línea */
+    margin-bottom:6px;/* Espacio inferior */
+}
+
+/* Campos de texto y listas desplegables */
+.input-group input,
+.input-group select{
+    width:100%;/* Ocupan todo el ancho */
+    padding:12px;/* Espaciado interno */
+    border:1px solid #ddd;/* Borde gris */
+    border-radius:6px;/* Bordes redondeados */
+}
+
+/* Botón para iniciar sesión */
+.btn-login{
+    width:100%;/* Ocupa todo el ancho */
+    padding:12px;/* Espaciado interno */
+    border:none;/* Sin borde */
+    background:#176b87;/* Color de fondo */
+    color:white;/* Texto blanco */
+    border-radius:6px;/* Bordes redondeados */
+    cursor:pointer;/* Cambia el cursor al pasar encima */
+    font-weight:bold;/* Texto en negrita */
+}
+
+/* DASHBOARD */
+
+/* Contenedor principal del panel */
+.dashboard{
+    display:flex;/* Distribuye elementos horizontalmente */
+    min-height:100vh;/* Altura mínima de toda la pantalla */
+}
+
+/* Barra lateral del sistema */
+.sidebar{
+    width:250px;/* Ancho de la barra lateral */
+    background:#163b52;/* Color de fondo */
+    color:white;/* Color del texto */
+    padding:25px;/* Espaciado interno */
+}
+
+/* Logo dentro de la barra lateral */
+.sidebar-logo{
+    width:60px;/* Ancho del logo */
+    height:60px;/* Alto del logo */
+    background:#176b87;/* Color de fondo */
+    border-radius:10px;/* Bordes redondeados */
+
+    display:flex;/* Activa Flexbox */
+    justify-content:center;/* Centra horizontalmente */
+    align-items:center;/* Centra verticalmente */
+
+    margin-bottom:20px;/* Espacio inferior */
+}
+
+/* Lista de opciones del menú */
+.sidebar ul{
+    list-style:none;/* Elimina viñetas */
+    margin-top:20px;/* Espacio superior */
+}
+
+/* Elementos del menú */
+.sidebar li{
+    padding:12px;/* Espaciado interno */
+    margin-bottom:10px;/* Separación entre opciones */
+    background:rgba(255,255,255,.08);/* Fondo semitransparente */
+    border-radius:8px;/* Bordes redondeados */
+}
+
+/* Ajuste específico para elementos del menú */
+.sidebar-menu li{
+    padding:0;/* Elimina relleno adicional */
+}
+
+/* Enlaces del menú */
+.sidebar-menu a{
+    display:block;/* Ocupa todo el espacio disponible */
+    padding:12px;/* Espaciado interno */
+    color:white;/* Texto blanco */
+    text-decoration:none;/* Elimina subrayado */
+}
+
+/* Opción activa o cuando se pasa el cursor */
+.sidebar-menu li.active,
+.sidebar-menu li:hover{
+    background:rgba(255,255,255,.15);/* Fondo resaltado */
+}
+
+/* Área principal del contenido */
+.content{
+    flex:1;/* Ocupa el espacio restante */
+    padding:40px;/* Espaciado interno */
+}
+
+/* Encabezado de cada módulo */
+.dashboard-header{
+    display:flex;/* Organiza elementos horizontalmente */
+    justify-content:space-between;/* Distribuye espacios */
+    align-items:center;/* Centra verticalmente */
+    margin-bottom:30px;/* Espacio inferior */
+}
+
+/* Contenedor de estadísticas */
+.stats{
+    display:grid;/* Utiliza Grid */
+    grid-template-columns:repeat(4,1fr);/* Cuatro columnas iguales */
+    gap:20px;/* Espacio entre tarjetas */
+    margin-bottom:30px;/* Espacio inferior */
+}
+
+/* Tarjeta de estadísticas */
+.stat-card{
+    background:white;/* Fondo blanco */
+    padding:20px;/* Espaciado interno */
+    border-radius:12px;/* Bordes redondeados */
+    box-shadow:0 3px 10px rgba(0,0,0,.05);/* Sombra suave */
+}
+
+/* Título de la tarjeta */
+.stat-card h3{
+    color:#176b87;/* Color azul */
+    margin-bottom:10px;/* Espacio inferior */
+}
+
+/* Texto de la tarjeta */
+.stat-card p{
+    color:#444;/* Color gris oscuro */
+}
+
+/* Contenedor de tablas y formularios */
+.table-container{
+    background:white;/* Fondo blanco */
+    padding:25px;/* Espaciado interno */
+    border-radius:12px;/* Bordes redondeados */
+}
+
+/* Tabla general */
+table{
+    width:100%;/* Ocupa todo el ancho */
+    border-collapse:collapse;/* Une los bordes */
+    margin-top:15px;/* Espacio superior */
+}
+
+/* Encabezados de tabla */
+th{
+    background:#176b87;/* Fondo azul */
+    color:white;/* Texto blanco */
+    padding:12px;/* Espaciado interno */
+}
+
+/* Celdas de tabla */
+td{
+    padding:12px;/* Espaciado interno */
+    border-bottom:1px solid #ddd;/* Línea divisoria inferior */
+}
+
+/* ==========================
+   MI PRACTICA
+========================== */
+
+/* Contenedor de tarjetas de información del estudiante */
+.cards-container{
+    display:grid; /* Usa un diseño tipo cuadrícula */
+    grid-template-columns:repeat(4,1fr); /* Cuatro columnas iguales */
+    gap:20px; /* Espacio entre tarjetas */
+}
+
+/* Tarjeta individual de información */
+.card-info{
+    background:white; /* Fondo blanco */
+    padding:20px; /* Espaciado interno */
+    border-radius:12px; /* Bordes redondeados */
+    box-shadow:0 3px 10px rgba(0,0,0,.05); /* Sombra suave */
+}
+
+/* Título de cada tarjeta */
+.card-info h3{
+    color:#176b87; /* Azul institucional */
+    margin-bottom:10px; /* Separación inferior */
+}
+
+/* Texto dentro de la tarjeta */
+.card-info p{
+    color:#444; /* Texto gris oscuro */
+    font-size:14px; /* Tamaño pequeño */
+}
+
+/* ==========================
+   FORMULARIOS
+========================== */
+
+/* Contenedor general para formularios en varios módulos */
+.form-grid{
+    display:grid; /* Usa grid para distribuir campos */
+    gap:15px; /* Espacio entre elementos */
+    margin-top:20px; /* Separación desde arriba */
+}
+
+/* Estilo de inputs, selects y textareas dentro de formularios */
+.form-grid input,
+.form-grid select,
+.form-grid textarea{
+    width:100%; /* Ocupa todo el ancho disponible */
+    padding:12px; /* Espaciado interno */
+    border:1px solid #d1d5db; /* Borde gris claro */
+    border-radius:8px; /* Bordes redondeados */
+    font-size:14px; /* Tamaño de letra */
+}
+
+/* Área de texto grande para descripciones */
+.form-grid textarea{
+    min-height:120px; /* Altura mínima */
+    resize:none; /* Evita redimensionar manualmente */
+}
+
+/* Botón principal de formulario */
+.btn-form{
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    padding:12px; /* Espaciado interno */
+    border-radius:8px; /* Bordes redondeados */
+    cursor:pointer; /* Cursor tipo mano */
+    font-weight:bold; /* Texto en negrita */
+}
+
+/* Efecto al pasar el mouse por encima del botón */
+.btn-form:hover{
+    background:#12556b; /* Fondo más oscuro */
+}
+
+/* Contenedor de enlaces rápidos */
+.quick-links{
+    display:grid; /* Usa cuadrícula */
+    grid-template-columns:repeat(3,1fr); /* Tres columnas iguales */
+    gap:15px; /* Espacio entre columnas */
+    margin-top:20px; /* Separación superior */
+}
+
+/* Botones dentro de links rápidos */
+.quick-links .btn-form{
+    text-align:center; /* Centra el texto */
+    text-decoration:none; /* Elimina subrayado */
+}
+
+/* ==========================
+   DOCENTE
+========================== */
+
+/* Título del rol en la sidebar */
+.sidebar h2{
+    margin-bottom:20px; /* Espacio inferior */
+}
+
+/* Elementos del menú lateral */
+.sidebar li{
+    cursor:pointer; /* Muestra mano al pasar */
+    transition:.2s; /* Transición suave */
+}
+
+/* Efecto al pasar el mouse sobre la opción */
+.sidebar-menu li:hover{
+    background:rgba(255,255,255,.15); /* Fondo semitransparente */
+}
+
+/* Icono del usuario en el encabezado */
+.user-icon{
+    width:45px; /* Ancho del círculo */
+    height:45px; /* Alto del círculo */
+    border-radius:50%; /* Forma circular */
+    background:#e8f1f5; /* Fondo gris claro */
+
+    display:flex; /* Centra contenido interno */
+    justify-content:center; /* Alinea horizontalmente */
+    align-items:center; /* Alinea verticalmente */
+
+    font-size:20px; /* Tamaño del emoji o icono */
+}
+
+/* =====================================
+   ASESOR PEDAGÓGICO
+===================================== */
+
+/* Reaplica el diseño de formularios para la vista del asesor */
+.form-grid{
+    display:grid; /* Usa cuadrícula */
+    gap:15px; /* Espacio entre elementos */
+}
+
+/* Textarea de la vista del asesor */
+.form-grid textarea{
+    min-height:120px; /* Altura mínima */
+}
+
+/* Estilos de inputs, selects y textareas para asesor */
+.form-grid input,
+.form-grid select,
+.form-grid textarea{
+    padding:12px; /* Espaciado interno */
+    border:1px solid #d1d5db; /* Borde gris claro */
+    border-radius:8px; /* Bordes redondeados */
+    font-size:14px; /* Tamaño de texto */
+}
+
+/* Botón base usado en el módulo docente/asesor */
+.btn-form{
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    padding:12px; /* Espaciado interno */
+    border-radius:8px; /* Bordes redondeados */
+    cursor:pointer; /* Cambio de cursor */
+    font-weight:bold; /* Texto destacando */
+}
+
+/* Efecto hover del botón del asesor */
+.btn-form:hover{
+    background:#12556b; /* Fondo más oscuro */
+}
+
+/* Ajustes responsivos para pantallas medianas */
+@media (max-width:800px){
+    .dashboard{
+        display:block; /* El dashboard deja de ser horizontal */
+    }
+
+    .sidebar{
+        width:100%; /* La barra lateral ocupa todo el ancho */
+    }
+
+    .sidebar-menu{
+        display:grid; /* Menu en columnas */
+        grid-template-columns:repeat(2,1fr); /* Dos columnas */
+        gap:10px; /* Espacio entre opciones */
+    }
+
+    .content{
+        padding:25px; /* Reduce el padding del contenido */
+    }
+
+    .stats,
+    .cards-container,
+    .quick-links{
+        grid-template-columns:1fr 1fr; /* Dos columnas en resoluciones medianas */
+    }
+}
+
+/* Ajustes responsivos para pantallas pequeñas */
+@media (max-width:520px){
+    .stats,
+    .cards-container,
+    .quick-links{
+        grid-template-columns:1fr; /* Una sola columna */
+    }
+}
+
+/* ==================================
+   DIRECTOR DE CARRERA
+================================== */
+
+/* Grid de formularios para panel del director */
+.form-grid{
+    display:grid; /* Usa grid */
+    grid-template-columns:repeat(2,1fr); /* Dos columnas */
+    gap:15px; /* Espacio entre elementos */
+    margin-top:20px; /* Separación superior */
+}
+
+/* Inputs y selects del director */
+.form-grid input,
+.form-grid select{
+    padding:12px; /* Espaciado interno */
+    border:1px solid #d1d5db; /* Borde gris claro */
+    border-radius:8px; /* Bordes redondeados */
+}
+
+/* Botón del director */
+.btn-form{
+    background:#176b87; /* Azul institucional */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    padding:12px; /* Espaciado interno */
+    border-radius:8px; /* Bordes redondeados */
+    cursor:pointer; /* Cursor tipo mano */
+    font-weight:bold; /* Texto en negrita */
+}
+
+/* Efecto hover del botón del director */
+.btn-form:hover{
+    background:#12556b; /* Fondo más oscuro */
+}
+
+/* ==========================
+   DIRECTOR DE CARRERA
+========================== */
+
+/* Repetición del grid para formularios del director */
+.form-grid{
+    display:grid; /* Usa layout en columnas */
+    grid-template-columns:repeat(2,1fr); /* Dos columnas */
+    gap:15px; /* Separación */
+    margin-top:20px; /* Margen superior */
+}
+
+/* Inputs y selects del módulo de director */
+.form-grid input,
+.form-grid select{
+    width:100%; /* Toman el ancho completo del contenedor */
+    padding:12px; /* Espaciado interno */
+    border:1px solid #d1d5db; /* Borde gris */
+    border-radius:8px; /* Bordes redondeados */
+}
+
+/* Botón principal del panel director */
+.btn-form{
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    border:none; /* Quita borde */
+    padding:12px; /* Espaciado interno */
+    border-radius:8px; /* Bordes redondeados */
+    cursor:pointer; /* Mano al pasar */
+    font-weight:bold; /* Texto en negrita */
+}
+
+/* Cambio visual al pasar por encima */
+.btn-form:hover{
+    background:#12556b; /* Azul más oscuro */
+}
+
+/* ==========================
+   PROGRESO DE HORAS
+========================== */
+
+/* Tarjeta que muestra el progreso de horas */
+.progreso-card{
+    background:white; /* Fondo blanco */
+    padding:25px; /* Espaciado interno */
+    border-radius:12px; /* Bordes redondeados */
+    margin-bottom:30px; /* Separación inferior */
+    box-shadow:0 3px 10px rgba(0,0,0,.05); /* Sombra suave */
+}
+
+/* Título de la tarjeta de progreso */
+.progreso-card h2{
+    color:#163b52; /* Azul oscuro */
+    margin-bottom:15px; /* Espacio inferior */
+}
+
+/* Fila que muestra horas completadas y requeridas */
+.horas-info{
+    display:flex; /* Los elementos se alinean horizontalmente */
+    justify-content:space-between; /* Espacio entre ambos textos */
+    margin-bottom:15px; /* Separación inferior */
+    font-weight:bold; /* Texto en negrita */
+}
+
+/* Barra contenedora del progreso */
+.barra-progreso{
+    width:100%; /* Ocupa todo el ancho */
+    height:20px; /* Altura de la barra */
+    background:#dbe4ea; /* Fondo gris claro */
+    border-radius:20px; /* Bordes redondeados */
+    overflow:hidden; /* Oculta lo que se salga */
+}
+
+/* Barra interna que representa la cantidad completada */
+.barra-llenada{
+    width:60%; /* 60% del progreso */
+    height:100%; /* Altura completa */
+    background:#176b87; /* Fondo azul */
+}
+
+/* Texto del porcentaje */
+.porcentaje{
+    margin-top:10px; /* Espacio superior */
+    text-align:right; /* Alineación a la derecha */
+    color:#176b87; /* Texto azul */
+    font-weight:bold; /* Negrita */
+}
+
+/* ==========================
+   ACCIONES DOCENTE
+========================== */
+
+/* Contenedor de las tarjetas de acciones del docente */
+.acciones-container{
+    display:grid; /* Grilla */
+    grid-template-columns:repeat(3,1fr); /* Tres columnas iguales */
+    gap:20px; /* Espacio entre tarjetas */
+    margin-bottom:30px; /* Separación inferior */
+}
+
+/* Tarjeta de acción */
+.accion-card{
+    background:white; /* Fondo blanco */
+    padding:25px; /* Espaciado */
+    border-radius:12px; /* Bordes redondeados */
+    text-align:center; /* Centra el texto */
+    box-shadow:0 3px 10px rgba(0,0,0,.05); /* Sombra suave */
+}
+
+/* Número grande dentro de la tarjeta */
+.accion-card p{
+    font-size:30px; /* Letra grande */
+    font-weight:bold; /* Negrita */
+    margin-top:10px; /* Espacio superior */
+}
+
+/* Color de borde para alerta */
+.alerta{
+    border-left:6px solid #dc2626; /* Borde rojo */
+}
+
+/* Color de borde para advertencia */
+.advertencia{
+    border-left:6px solid #f59e0b; /* Borde amarillo */
+}
+
+/* Color de borde para correcto */
+.correcto{
+    border-left:6px solid #16a34a; /* Borde verde */
+}
+
+/* ==========================
+   ALERTAS DIRECTOR
+========================== */
+
+/* Panel de alertas del director */
+.alertas-panel{
+    background:white; /* Fondo blanco */
+    padding:25px; /* Espaciado interno */
+    border-radius:12px; /* Bordes redondeados */
+    margin-bottom:30px; /* Espacio inferior */
+    box-shadow:0 3px 10px rgba(0,0,0,.05); /* Sombra */
+}
+
+/* Título del panel de alertas */
+.alertas-panel h2{
+    margin-bottom:15px; /* Espacio inferior */
+    color:#163b52; /* Azul oscuro */
+}
+
+/* Cada alerta individual */
+.alerta-item{
+    background:#fff7ed; /* Fondo amarillo muy claro */
+    border-left:5px solid #f59e0b; /* Línea izquierda naranja */
+    padding:12px; /* Espaciado interno */
+    margin-bottom:10px; /* Espacio entre alertas */
+    border-radius:6px; /* Bordes redondeados */
+}
+
+/* ==========================
+   REVISION DE BITACORAS
+========================== */
+
+/* Contenedor de botones de revisión */
+.quick-links{
+    display:flex; /* Los botones se muestran en línea */
+    gap:20px; /* Separación entre botones */
+    margin-top:20px; /* Espacio superior */
+}
+
+/* Botón base para acciones de revisión */
+.btn-form{
+    padding:12px 25px; /* Espaciado interno horizontal y vertical */
+    border:none; /* Sin borde */
+    border-radius:8px; /* Bordes redondeados */
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    font-weight:bold; /* Texto en negrita */
+    cursor:pointer; /* Cursor tipo mano */
+}
+
+/* Efecto hover */
+.btn-form:hover{
+    opacity:.9; /* Disminuye la opacidad */
+}
+
+/* Botón de aprobación */
+.aprobar{
+    background:#198754; /* Verde */
+}
+
+/* Botón de rechazo o corrección */
+.rechazar{
+    background:#dc3545; /* Rojo */
+}
+
+/* ==========================
+   GESTIÓN ACADÉMICA
+========================== */
+
+/* Grid para formulario de registro académico */
+.form-grid{
+    display:grid; /* Layout en columnas */
+    grid-template-columns:repeat(2,1fr); /* Dos columnas iguales */
+    gap:20px; /* Espacio entre campos */
+    margin-top:20px; /* Separación superior */
+}
+
+/* Inputs y selects del módulo académico */
+.form-grid input,
+.form-grid select{
+    width:100%; /* Ocupa todo el ancho */
+    padding:14px; /* Espaciado interno */
+    border:1px solid #d9d9d9; /* Borde gris claro */
+    border-radius:8px; /* Bordes redondeados */
+    font-size:15px; /* Tamaño de texto */
+}
+
+/* Botón de registro académico */
+.btn-form{
+    grid-column:span 2; /* El botón ocupa ambas columnas */
+    padding:14px; /* Espaciado interno */
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    border-radius:8px; /* Bordes redondeados */
+    font-weight:bold; /* Texto en negrita */
+    cursor:pointer; /* Mano al pasar */
+}
+
+/* Hover del botón académico */
+.btn-form:hover{
+    background:#12556b; /* Fondo más oscuro */
+}
+
+/* ==========================
+   GESTIÓN DE PRÁCTICAS
+========================== */
+
+/* Grid del formulario de prácticas */
+.form-grid{
+    display:grid; /* Usa cuadrícula */
+    grid-template-columns:repeat(2,1fr); /* Dos columnas */
+    gap:20px; /* Espacio entre campos */
+    margin-top:20px; /* Separación superior */
+}
+
+/* Inputs y selects del módulo de prácticas */
+.form-grid input,
+.form-grid select{
+    width:100%; /* Ancho completo */
+    padding:14px; /* Espaciado interno */
+    border:1px solid #d9d9d9; /* Borde gris */
+    border-radius:8px; /* Bordes redondeados */
+    font-size:15px; /* Tamaño de texto */
+    background:white; /* Fondo blanco */
+}
+
+/* Botón para registrar práctica */
+.btn-form{
+    grid-column:span 2; /* Ocupa dos columnas */
+    padding:14px; /* Espaciado interno */
+    background:#176b87; /* Fondo azul */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    border-radius:8px; /* Bordes redondeados */
+    font-weight:bold; /* Texto en negrita */
+    cursor:pointer; /* Cursor mano */
+    transition:.3s; /* Transición suave */
+}
+
+/* Hover del botón de práctica */
+.btn-form:hover{
+    background:#12556b; /* Fondo más oscuro */
+}
+
+/* ==========================
+   SEGUIMIENTO
+========================== */
+
+/* Borde lateral rojo para alertas */
+.alerta-card{
+    border-left:5px solid #dc2626; /* Rojo */
+}
+
+/* Borde lateral amarillo para advertencias */
+.advertencia-card{
+    border-left:5px solid #f59e0b; /* Amarillo */
+}
+
+/* Textarea de observaciones en seguimiento */
+.form-grid textarea{
+    width:100%; /* Ancho completo */
+    min-height:120px; /* Altura mínima */
+    padding:12px; /* Espaciado interno */
+    border:1px solid #dcdcdc; /* Borde gris claro */
+    border-radius:8px; /* Bordes redondeados */
+    resize:vertical; /* Se puede redimensionar solo verticalmente */
+}
+
+/* Ajuste para select e input dentro del seguimiento */
+.form-grid select,
+.form-grid input{
+    width:100%; /* Ocupa todo el ancho */
+}
+
+/* Enlaces del menú lateral */
+.sidebar-menu a{
+    color:white; /* Texto blanco */
+    text-decoration:none; /* Sin subrayado */
+    display:block; /* Se comporta como bloque */
+    width:100%; /* Ocupa todo el ancho */
+}
+
+/* OBSERVACIONES DOCENTE */
+
+/* Contenedor del campo completo para observaciones */
+.campo-completo{
+    margin-top: 20px; /* Espacio superior */
+}
+
+/* Etiqueta del campo de observación */
+.campo-completo label{
+    display: block; /* Se coloca en nueva línea */
+    margin-bottom: 10px; /* Espacio inferior */
+    font-weight: bold; /* Texto en negrita */
+}
+
+/* Textarea principal para escribir observaciones */
+.campo-completo textarea{
+    width: 100%; /* Ancho completo */
+    min-height: 140px; /* Altura mínima mayor */
+    padding: 12px; /* Espaciado interno */
+    border: 1px solid #d1d5db; /* Borde gris claro */
+    border-radius: 10px; /* Bordes redondeados */
+    font-size: 15px; /* Tamaño de texto */
+    resize: vertical; /* Permite redimensionar solo verticalmente */
+    box-sizing: border-box; /* El padding entra en el ancho */
+}
+
+/* Efecto visual cuando el textarea recibe foco */
+.campo-completo textarea:focus{
+    outline: none; /* Quita el borde de enfoque predeterminado */
+    border-color: #0f7490; /* Cambia a color azul oscuro */
+}
+
+/* ==========================================================
+   FUNCIONALIDAD (agregado para el prototipo con JavaScript)
+========================================================== */
+
+/* Nombre del usuario junto al icono del encabezado */
+.usuario-info{
+    display:flex; /* Nombre e icono en línea */
+    align-items:center; /* Centra verticalmente */
+    gap:12px; /* Espacio entre nombre e icono */
+}
+
+.usuario-info span{
+    font-weight:bold; /* Nombre en negrita */
+    color:#163b52; /* Azul oscuro */
+}
+
+/* Etiquetas de estado (Aprobada, Pendiente, etc.) */
+.badge{
+    display:inline-block; /* Se comporta como una etiqueta */
+    padding:4px 10px; /* Espaciado interno */
+    border-radius:20px; /* Forma de píldora */
+    font-size:13px; /* Texto pequeño */
+    font-weight:bold; /* Negrita */
+}
+
+.badge-verde{ background:#d1f2e0; color:#146c43; }
+.badge-amarillo{ background:#fff3cd; color:#8a6100; }
+.badge-rojo{ background:#f8d7da; color:#a02834; }
+.badge-azul{ background:#dbeafe; color:#1e4f8a; }
+.badge-gris{ background:#e5e7eb; color:#4b5563; }
+
+/* Botones pequeños dentro de las tablas */
+.btn-mini{
+    background:#176b87; /* Azul institucional */
+    color:white; /* Texto blanco */
+    border:none; /* Sin borde */
+    padding:6px 12px; /* Espaciado interno */
+    border-radius:6px; /* Bordes redondeados */
+    cursor:pointer; /* Cursor tipo mano */
+    font-weight:bold; /* Negrita */
+    font-size:13px; /* Texto pequeño */
+}
+
+.btn-mini:hover{ background:#12556b; }
+.btn-mini.verde{ background:#198754; }
+.btn-mini.verde:hover{ background:#146c43; }
+
+/* Botón secundario (cancelar) */
+.btn-secundario{
+    background:#6b7280; /* Gris */
+}
+
+.btn-secundario:hover{ background:#4b5563; }
+
+/* Filas que se pueden seleccionar (revisión de bitácoras) */
+.fila-seleccionable{ cursor:pointer; }
+.fila-seleccionable:hover{ background:#eef6f9; }
+.fila-seleccionada{ background:#d6ebf2 !important; outline:2px solid #176b87; }
+
+/* Mensaje cuando una tabla no tiene datos */
+.vacio{
+    text-align:center; /* Centrado */
+    color:#777; /* Gris */
+    padding:20px; /* Espaciado interno */
+}
+
+/* Campo con error de validación */
+.campo-error{
+    border-color:#dc3545 !important; /* Borde rojo */
+    background:#fff5f5; /* Fondo rosado muy suave */
+}
+
+/* Comentario del tutor cuando pide una corrección */
+.comentario-correccion{
+    margin-top:6px; /* Espacio superior */
+    font-size:13px; /* Texto pequeño */
+    color:#a02834; /* Rojo oscuro */
+}
+
+/* Textos de ayuda bajo los formularios */
+.ayuda{
+    color:#555; /* Gris oscuro */
+    font-size:14px; /* Texto pequeño */
+    margin:12px 0 0; /* Espacio superior */
+}
+
+/* Mensajes dentro de la página (login) */
+.mensaje{
+    margin:10px 0; /* Espacio arriba y abajo */
+    padding:10px 12px; /* Espaciado interno */
+    border-radius:6px; /* Bordes redondeados */
+    font-size:14px; /* Tamaño del texto */
+}
+
+.mensaje.error{ background:#f8d7da; color:#a02834; }
+.mensaje.info{ background:#dbeafe; color:#1e4f8a; }
+.mensaje.ok{ background:#d1f2e0; color:#146c43; }
+
+/* Caja de usuarios de prueba en el login */
+.demo-credenciales{
+    margin-top:20px; /* Separación superior */
+    padding:12px; /* Espaciado interno */
+    background:#f4f6f9; /* Gris muy claro */
+    border-radius:8px; /* Bordes redondeados */
+    text-align:center; /* Centrado */
+    font-size:13px; /* Texto pequeño */
+    color:#555; /* Gris oscuro */
+}
+
+.demo-credenciales p{ margin-bottom:8px; }
+
+.cred{
+    background:white; /* Fondo blanco */
+    border:1px solid #176b87; /* Borde azul */
+    color:#176b87; /* Texto azul */
+    border-radius:20px; /* Forma de píldora */
+    padding:4px 12px; /* Espaciado interno */
+    margin:2px; /* Separación entre botones */
+    cursor:pointer; /* Cursor tipo mano */
+    font-size:13px; /* Texto pequeño */
+}
+
+.cred:hover{ background:#176b87; color:white; }
+
+.enlace-discreto{ color:#888; font-size:12px; }
+
+/* Mensajes flotantes (toast) */
+#toasts{
+    position:fixed; /* Siempre visible */
+    top:20px; /* Arriba */
+    right:20px; /* A la derecha */
+    display:flex; /* Se apilan en columna */
+    flex-direction:column; /* Uno debajo de otro */
+    gap:10px; /* Espacio entre mensajes */
+    z-index:1000; /* Por encima de todo */
+    max-width:360px; /* Ancho máximo */
+}
+
+.toast{
+    padding:14px 18px; /* Espaciado interno */
+    border-radius:8px; /* Bordes redondeados */
+    color:white; /* Texto blanco */
+    font-size:14px; /* Tamaño del texto */
+    box-shadow:0 4px 14px rgba(0,0,0,.25); /* Sombra */
+}
+
+.toast-ok{ background:#198754; }
+.toast-error{ background:#dc3545; }
+
+/* Etiquetas de los campos de formulario */
+.form-group label{
+    display:block; /* En su propia línea */
+    margin-bottom:6px; /* Espacio inferior */
+    font-weight:bold; /* Negrita */
+    font-size:14px; /* Texto pequeño */
+}
+
+.form-group input,
+.form-group select{
+    width:100%; /* Ocupa todo el ancho de su columna */
+}
+
+/* El área de texto ocupa toda la fila del formulario */
+.form-grid textarea{
+    grid-column:1 / -1;
+}
+
+/* Botones de descarga de reportes */
+.acciones-reporte{
+    margin-top:20px; /* Separación superior */
+    display:flex; /* Alinea los botones */
+    gap:10px; /* Espacio entre botones */
+}
+
+.acciones-reporte .btn-form{ padding:12px 24px; }
+
+/* Alerta del dashboard cuando todo está bien */
+.alerta-ok{
+    background:#ecfdf3; /* Verde muy claro */
+    border-left-color:#198754; /* Línea izquierda verde */
+}
+
+/* Las tablas con muchas columnas se desplazan en pantallas pequeñas */
+.table-container{ overflow-x:auto; }
+
+/* ==========================================================
+   VERSIÓN 2 (agregado): formularios dinámicos, gamificación,
+   tareas del tutor, pantalla única del asesor, reportes
+========================================================== */
+
+.span-todo{ grid-column:1 / -1; }                       /* ocupa toda la fila del form-grid */
+.grid-interno{ display:grid; gap:15px; }                /* contenedor de campos generados por JS */
+.grid-interno .form-group input,
+.grid-interno .form-group select,
+.grid-interno .form-group textarea{
+    width:100%; padding:12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px;
+}
+.grid-interno textarea{ min-height:70px; resize:vertical; }
+.form-group textarea{ width:100%; }
+.subtitulo{ color:#163b52; margin:18px 0 8px; font-size:16px; }
+.subtitulo small{ color:#777; font-weight:normal; }
+.fila-botones{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:10px; }
+.fila-botones .btn-form{ padding:12px 22px; }
+.estado-guardado{ color:#146c43; font-size:13px; }
+.horas-calc{ padding:12px; background:#eef6f9; border-radius:8px; font-weight:bold; color:#163b52; }
+.acciones-fila{ white-space:nowrap; }
+.acciones-fila .btn-mini{ margin-right:4px; }
+.btn-mini.rojo{ background:#dc3545; }
+.btn-mini.rojo:hover{ background:#b02a37; }
+.btn-mini:disabled{ background:#b8c2c9; cursor:not-allowed; }
+a.btn-mini{ text-decoration:none; display:inline-block; }
+a.btn-form{ text-decoration:none; text-align:center; display:block; }
+code{ background:#eef2f5; padding:2px 5px; border-radius:4px; font-size:12px; }
+
+/* Etiquetas, evidencias y detalle de respuestas */
+.chip-tag{ display:inline-block; background:#e0f2f7; color:#0f5c73; border-radius:12px; padding:2px 8px; font-size:12px; margin:2px 2px 0 0; }
+.detalle{ margin-top:6px; font-size:13px; }
+.detalle summary{ cursor:pointer; color:#176b87; font-weight:bold; }
+.detalle ul, .lista-detalle{ margin:6px 0 0 18px; }
+.detalle-bitacora{ background:#f4f9fb; border-left:4px solid #176b87; border-radius:6px; padding:12px; margin-bottom:15px; font-size:14px; }
+.detalle-bitacora p{ margin:6px 0; }
+
+/* Barra de progreso con hitos (gamificación) */
+.barra-progreso{ position:relative; }
+.hito{ position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.9); }
+.mini-barra{ height:8px; background:#dbe4ea; border-radius:8px; margin-top:4px; overflow:hidden; min-width:90px; }
+.mini-barra span{ display:block; height:100%; background:#176b87; }
+.insignias{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+.insignia{ background:#fff8e1; border:1px solid #f5d77a; border-radius:10px; padding:12px; text-align:center; display:flex; flex-direction:column; gap:4px; }
+.insignia small{ color:#6b5b1e; font-size:11px; }
+.insignia-icono{ font-size:28px; }
+.insignia.bloqueada{ background:#f1f3f5; border-color:#dde1e5; filter:grayscale(1); opacity:.65; }
+.insignia.bloqueada small{ color:#666; }
+
+/* Panel del tutor */
+.dos-columnas{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.dos-columnas .alertas-panel{ margin-bottom:30px; }
+.lista-tareas{ list-style:none; margin:0 0 10px; }
+.lista-tareas li{ padding:8px 0; border-bottom:1px solid #eef1f3; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+.lista-tareas a{ color:#163b52; }
+.tarea.hecha label{ text-decoration:line-through; color:#888; }
+.fila-tarea{ display:flex; gap:8px; margin-top:8px; }
+.fila-tarea input{ flex:1; padding:8px; border:1px solid #d1d5db; border-radius:8px; }
+.plantillas{ margin:12px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.plantillas-titulo{ font-weight:bold; font-size:14px; color:#163b52; }
+#plantillasChips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip-plantilla{ display:inline-flex; background:#e0f2f7; border-radius:16px; overflow:hidden; }
+.chip-plantilla button{ border:none; background:none; padding:5px 10px; cursor:pointer; color:#0f5c73; font-size:13px; }
+.chip-plantilla button:hover{ background:#c7e6ef; }
+.chip-plantilla .x{ padding:5px 8px; color:#a02834; }
+
+/* Reportes */
+.resumen-reporte{ background:#f4f9fb; border-radius:8px; padding:12px; margin-bottom:15px; font-size:14px; display:grid; gap:4px; }
+.reporte-card .botones-reporte{ display:flex; gap:8px; margin-top:12px; }
+#tarjetasReportes{ grid-template-columns:repeat(3,1fr); }
+
+/* Pantalla única del asesor (sin menú lateral) */
+.pantalla-unica-body{ background:#f4f6f9; }
+.pu-header{ background:#163b52; color:white; padding:14px 30px; display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; }
+.pu-marca{ display:flex; align-items:center; gap:14px; }
+.pu-marca .sidebar-logo{ margin-bottom:0; }
+.pu-marca h1{ font-size:20px; }
+.pu-marca small{ color:#b9cfdb; }
+.pu-header .usuario-info span{ color:white; }
+.pu-contenido{ max-width:1100px; margin:0 auto; padding:30px 20px; }
+.pu-contenido .table-container{ margin-bottom:20px; }
+.lista-practicantes{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-top:12px; }
+.practicante{ text-align:left; background:white; border:2px solid #d1d5db; border-radius:10px; padding:14px; cursor:pointer; display:flex; flex-direction:column; gap:6px; font-size:14px; }
+.practicante span{ color:#666; font-size:13px; }
+.practicante:hover{ border-color:#176b87; }
+.practicante.activo{ border-color:#176b87; background:#e8f4f8; }
+
+@media (max-width:800px){
+    .dos-columnas{ grid-template-columns:1fr; }
+    #tarjetasReportes{ grid-template-columns:1fr; }
+    .pu-header{ padding:12px 16px; }
+}
+@media (max-width:520px){
+    .form-grid{ grid-template-columns:1fr !important; }
+}

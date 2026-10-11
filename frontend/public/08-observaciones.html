@@ -1,0 +1,99 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Observaciones</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="observaciones" data-rol="docente">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2>Docente Tutor</h2><!-- Rol del usuario -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header"><!-- Encabezado -->
+            <h1>Observaciones y Rúbricas</h1>
+            <div class="usuario-info"><!-- Nombre de la persona con sesión iniciada (lo llena app.js) -->
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">👨‍🏫</div>
+            </div>
+        </div>
+
+        <div class="table-container"><!-- Formulario -->
+            <h2>Nueva Observación</h2>
+            <form id="formObservacion" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="obsEstudiante">Estudiante</label>
+                        <select id="obsEstudiante"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="obsFecha">Fecha</label>
+                        <input type="date" id="obsFecha">
+                    </div>
+                </div>
+                <div class="campo-completo">
+                    <label for="obsTexto">Observación</label>
+                    <textarea id="obsTexto" placeholder="Ingrese la observación del estudiante"></textarea>
+                </div>
+                <br>
+                <button type="submit" class="btn-form">Guardar Observación</button>
+            </form>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Observaciones Registradas -->
+            <h2>Observaciones Registradas</h2>
+            <table>
+                <thead><tr><th>Estudiante</th><th>Fecha</th><th>Observación</th></tr></thead>
+                <tbody id="tablaObservaciones"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Rúbrica de Resultados de Aprendizaje -->
+            <h2>Rúbrica de Resultados de Aprendizaje</h2>
+            <form id="formRubrica" novalidate>
+                <div class="form-grid">
+                    <div class="form-group span-todo">
+                        <label for="rubEstudiante">Estudiante</label>
+                        <select id="rubEstudiante"></select>
+                    </div>
+                    <div class="span-todo grid-interno" id="rubCriterios"></div>
+                </div>
+                <div class="campo-completo">
+                    <label for="rubComentario">Comentario general (opcional)</label>
+                    <textarea id="rubComentario" placeholder="Observaciones sobre el desempeño en los resultados de aprendizaje" maxlength="300"></textarea>
+                </div>
+                <br>
+                <button type="submit" class="btn-form">Guardar Rúbrica</button>
+            </form>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Rúbricas aplicadas -->
+            <h2>Rúbricas Aplicadas</h2>
+            <table>
+                <thead><tr><th>Estudiante</th><th>Fecha</th><th>Promedio</th><th>Detalle por resultado</th></tr></thead>
+                <tbody id="tablaRubricas"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

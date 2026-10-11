@@ -1,0 +1,79 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Portal Asesor Pedagógico</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- Pantalla única (cero fricción): sin menús ni navegación. Todo el trabajo del asesor ocurre aquí. -->
+<body data-pagina="asesor" data-rol="asesor" class="pantalla-unica-body">
+
+<header class="pu-header"><!-- Encabezado simple -->
+    <div class="pu-marca">
+        <div class="sidebar-logo">GP</div>
+        <div><h1>Portal del Asesor Pedagógico</h1><small>Revisa, valida y califica en un solo lugar</small></div>
+    </div>
+    <div class="usuario-info">
+        <span id="nombreUsuario"></span>
+        <a href="#" id="cerrarSesion" class="btn-mini">Salir</a><!-- Cierra la sesión (lo maneja app.js) -->
+    </div>
+</header>
+
+<main class="pu-contenido">
+
+    <section class="stats"><!-- Resumen -->
+        <div class="stat-card"><h3>Practicantes en mi aula</h3><p id="asePracticantes">0</p></div>
+        <div class="stat-card"><h3>Horas por validar</h3><p id="aseHorasPend">0</p></div>
+        <div class="stat-card"><h3>Sin evaluar</h3><p id="asePendientes">0</p></div>
+        <div class="stat-card"><h3>Evaluaciones hechas</h3><p id="aseEvaluaciones">0</p></div>
+    </section>
+
+    <div class="table-container"><!-- Paso 1 -->
+        <h2>1. Elige un practicante</h2>
+        <div class="lista-practicantes" id="listaPracticantes"></div>
+        <p class="ayuda" id="mensajeSeleccion">Selecciona un practicante para ver sus entregas.</p>
+    </div>
+
+    <div id="panelPracticante" hidden>
+        <div class="table-container"><!-- Paso 2 -->
+            <h2>2. Valida la asistencia de <span id="apNombre"></span></h2>
+            <p class="ayuda" id="apInfo"></p>
+            <table>
+                <thead><tr><th>Fecha</th><th>Horario</th><th>Horas</th><th>Actividad</th><th>Evidencias</th><th>Asistencia</th><th>Acción</th></tr></thead>
+                <tbody id="tablaPlanillas"></tbody><!-- app.js llena las filas -->
+            </table>
+            <div class="acciones-reporte">
+                <button type="button" class="btn-form" id="btnValidarTodas" hidden>Validar todas las pendientes</button>
+            </div>
+        </div>
+
+        <div class="table-container"><!-- Paso 3 -->
+            <h2>3. Registra tu evaluación</h2>
+            <form id="formEvaluacion" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="evaNota">Calificación del desempeño (1.0 a 5.0)</label>
+                        <input type="number" id="evaNota" min="1" max="5" step="0.1" placeholder="Ej.: 4.5">
+                    </div>
+                </div>
+                <div class="campo-completo">
+                    <label for="evaTexto">Observaciones cualitativas</label>
+                    <textarea id="evaTexto" placeholder="Describe el desempeño del practicante en tu aula" maxlength="500"></textarea>
+                </div>
+                <br>
+                <button type="submit" class="btn-form">Guardar evaluación</button>
+            </form>
+            <h3 class="subtitulo">Evaluaciones de este practicante</h3>
+            <table>
+                <thead><tr><th>Fecha</th><th>Asesor</th><th>Nota</th><th>Observaciones</th></tr></thead>
+                <tbody id="tablaEvaluaciones"></tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

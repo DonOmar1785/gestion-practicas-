@@ -1,0 +1,79 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Mis Reportes</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="reportes-estudiante" data-rol="estudiante">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2 id="tituloRol">Estudiante</h2><!-- Rol del usuario (lo llena app.js) -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header">
+            <h1>Mis Reportes Oficiales</h1>
+            <div class="usuario-info">
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">👨‍🎓</div>
+            </div>
+        </div>
+
+        <p class="ayuda">Genera los tres reportes oficiales que exige la universidad. Con «PDF» se abre el cuadro de impresión: elige <b>Guardar como PDF</b>.</p>
+
+        <div class="cards-container" id="tarjetasReportes">
+            <div class="card-info reporte-card">
+                <h3>1. Horas y Asistencia</h3>
+                <p>Horas por jornada, estado de aprobación y validación del asesor.</p>
+                <div class="botones-reporte">
+                    <button type="button" class="btn-mini" data-rep="horas" data-accion="ver">Ver</button>
+                    <button type="button" class="btn-mini verde" data-rep="horas" data-accion="pdf">PDF</button>
+                    <button type="button" class="btn-mini" data-rep="horas" data-accion="excel">Excel</button>
+                </div>
+            </div>
+            <div class="card-info reporte-card">
+                <h3>2. Bitácoras</h3>
+                <p>Todas tus bitácoras con etiquetas, evidencias y comentarios del tutor.</p>
+                <div class="botones-reporte">
+                    <button type="button" class="btn-mini" data-rep="bitacoras" data-accion="ver">Ver</button>
+                    <button type="button" class="btn-mini verde" data-rep="bitacoras" data-accion="pdf">PDF</button>
+                    <button type="button" class="btn-mini" data-rep="bitacoras" data-accion="excel">Excel</button>
+                </div>
+            </div>
+            <div class="card-info reporte-card">
+                <h3>3. Evaluación y Observaciones</h3>
+                <p>Observaciones del tutor, rúbricas y evaluación del asesor.</p>
+                <div class="botones-reporte">
+                    <button type="button" class="btn-mini" data-rep="evaluacion" data-accion="ver">Ver</button>
+                    <button type="button" class="btn-mini verde" data-rep="evaluacion" data-accion="pdf">PDF</button>
+                    <button type="button" class="btn-mini" data-rep="evaluacion" data-accion="excel">Excel</button>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="table-container" id="resultadoReporte" hidden><!-- Vista previa (lo llena app.js) -->
+            <h2 id="tituloReporte"></h2>
+            <div class="resumen-reporte" id="resumenReporte" hidden></div>
+            <table>
+                <thead id="reporteHead"></thead>
+                <tbody id="reporteBody"></tbody>
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Reportes</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="reportes" data-rol="director">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2>Director de Programa</h2><!-- Rol del usuario -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header"><!-- Encabezado -->
+            <h1>Reportes Institucionales</h1>
+            <div class="usuario-info"><!-- Nombre de la persona con sesión iniciada (lo llena app.js) -->
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">📑</div>
+            </div>
+        </div>
+
+        <section class="stats"><!-- Tarjetas de estadísticas -->
+            <div class="stat-card"><h3>Reportes Generados</h3><p id="repGenerados">0</p></div>
+            <div class="stat-card"><h3>Prácticas Finalizadas</h3><p id="repFinalizadas">0</p></div>
+            <div class="stat-card"><h3>Instituciones Activas</h3><p id="repInstActivas">0</p></div>
+            <div class="stat-card"><h3>Estudiantes Activos</h3><p id="repEstActivos">0</p></div>
+        </section>
+
+        <div class="table-container"><!-- Generar reporte -->
+            <h2>Generar Reporte</h2>
+            <form id="formReporte" class="form-grid" novalidate>
+                <select id="repTipo">
+                    <option value="">Seleccione tipo de reporte</option>
+                    <option value="Prácticas Activas">Prácticas Activas</option>
+                    <option value="Prácticas Finalizadas">Prácticas Finalizadas</option>
+                    <option value="Bitácoras Registradas">Bitácoras Registradas</option>
+                    <option value="Evaluaciones">Evaluaciones</option>
+                    <option value="Indicadores Ministerio">Indicadores para el Ministerio</option>
+                    <option value="Consolidado Cualitativo">Consolidado cualitativo (visita de pares)</option>
+                </select>
+                <span></span>
+                <div class="form-group">
+                    <label for="repDesde">Desde</label>
+                    <input type="date" id="repDesde">
+                </div>
+                <div class="form-group">
+                    <label for="repHasta">Hasta</label>
+                    <input type="date" id="repHasta">
+                </div>
+                <button type="submit" class="btn-form">Generar Reporte</button>
+            </form>
+        </div>
+
+        <div class="table-container" id="resultadoReporte" hidden><!-- Resultado del reporte (lo llena app.js) -->
+            <h2 id="tituloReporte"></h2>
+            <div class="resumen-reporte" id="resumenReporte" hidden></div>
+            <table>
+                <thead id="reporteHead"></thead>
+                <tbody id="reporteBody"></tbody>
+            </table>
+            <div class="acciones-reporte">
+                <button type="button" class="btn-form" id="btnPDF">Descargar PDF</button>
+                <button type="button" class="btn-form" id="btnExcel">Descargar Excel</button>
+                <button type="button" class="btn-form btn-secundario" id="btnDescargar">Descargar CSV</button>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Reportes Recientes -->
+            <h2>Reportes Recientes</h2>
+            <table>
+                <thead><tr><th>Reporte</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="tablaReportes"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

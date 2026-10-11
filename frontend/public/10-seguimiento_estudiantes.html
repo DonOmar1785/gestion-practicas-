@@ -1,0 +1,69 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Seguimiento de Estudiantes</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="seguimiento-estudiantes" data-rol="asesor">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2>Asesor Pedagógico</h2><!-- Rol del usuario -->
+        <ul class="sidebar-menu"><!-- Menú lateral -->
+            <li><a href="09-asesor.html">Dashboard</a></li>
+            <li class="active"><a href="10-seguimiento_estudiantes.html">Seguimiento del Estudiante</a></li>
+            <li><a href="11-horas_reportes.html">Horas y Reportes</a></li>
+            <li><a href="#" id="cerrarSesion">Cerrar sesión</a></li><!-- Cierra la sesión (lo maneja app.js) -->
+        </ul>
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header"><!-- Encabezado -->
+            <h1>Seguimiento de Estudiantes</h1>
+            <div class="usuario-info"><!-- Nombre de la persona con sesión iniciada (lo llena app.js) -->
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">👨‍💼</div>
+            </div>
+        </div>
+
+        <div class="table-container"><!-- Estudiantes Asignados -->
+            <h2>Estudiantes Asignados</h2>
+            <table>
+                <thead><tr><th>Estudiante</th><th>Programa</th><th>Estado</th></tr></thead>
+                <tbody id="tablaAsignados"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+
+        <br>
+        <div class="table-container"><!-- Formulario de evaluación -->
+            <h2>Registrar Evaluación</h2>
+            <form id="formEvaluacion" class="form-grid" novalidate>
+                <select id="evaEstudiante"></select>
+                <input type="number" id="evaNota" placeholder="Calificación (1 - 5)" min="1" max="5" step="0.1">
+                <textarea id="evaTexto" placeholder="Observaciones del asesor"></textarea>
+                <button type="submit" class="btn-form">Guardar Evaluación</button>
+            </form>
+        </div>
+        <br>
+
+        <div class="table-container"><!-- Evaluaciones Registradas -->
+            <h2>Evaluaciones Registradas</h2>
+            <table>
+                <thead><tr><th>Estudiante</th><th>Nota</th><th>Observaciones</th><th>Fecha</th></tr></thead>
+                <tbody id="tablaEvaluaciones"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

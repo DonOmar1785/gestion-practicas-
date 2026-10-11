@@ -1,0 +1,25 @@
+{
+  "name": "gestion-practicas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "node --watch-path=backend/src backend/src/server.js",
+    "test": "node --test backend/test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "@xmldom/xmldom": "^0.9.12",
+    "@zip.js/zip.js": "^2.23.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "firebase-admin": "^14.5.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2"
+  }
+}

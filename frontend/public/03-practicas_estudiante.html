@@ -1,0 +1,53 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Mi Práctica</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="mi-practica" data-rol="estudiante">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2>Estudiante</h2><!-- Rol del usuario -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header"><!-- Encabezado -->
+            <h1>Mi Práctica Académica</h1>
+            <div class="usuario-info"><!-- Nombre de la persona con sesión iniciada (lo llena app.js) -->
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">👨‍🎓</div>
+            </div>
+        </div>
+
+        <div class="cards-container"><!-- Tarjetas informativas -->
+            <div class="card-info"><h3>Programa</h3><p id="practPrograma">—</p></div>
+            <div class="card-info"><h3>Institución</h3><p id="practInstitucion">—</p></div>
+            <div class="card-info"><h3>Tutor</h3><p id="practTutor">—</p></div>
+            <div class="card-info"><h3>Asesor</h3><p id="practAsesor">—</p></div>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Información General -->
+            <h2>Información General</h2>
+            <table>
+                <thead><tr><th>Campo</th><th>Información</th></tr></thead>
+                <tbody id="tablaPractica"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

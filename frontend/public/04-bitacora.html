@@ -1,0 +1,93 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Bitácoras</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="bitacora" data-rol="estudiante">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2>Estudiante</h2><!-- Rol del usuario -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content">
+        <div class="dashboard-header">
+            <h1>Registro de Bitácoras</h1>
+            <div class="usuario-info">
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">👨‍🎓</div>
+            </div>
+        </div>
+
+        <div class="table-container"><!-- Formulario -->
+            <h2 id="tituloFormBitacora">Nueva Bitácora</h2>
+            <p class="ayuda" id="avisoPlazo"></p>
+
+            <form id="formBitacora" class="form-grid" novalidate>
+                <div class="form-group">
+                    <label for="bitFecha">Fecha de la jornada</label>
+                    <input type="date" id="bitFecha">
+                </div>
+                <div class="form-group">
+                    <label for="bitEntrada">Hora de entrada</label>
+                    <input type="time" id="bitEntrada">
+                </div>
+                <div class="form-group">
+                    <label for="bitSalida">Hora de salida</label>
+                    <input type="time" id="bitSalida">
+                </div>
+                <div class="form-group">
+                    <label>Horas calculadas</label>
+                    <div class="horas-calc" id="bitHorasCalc">—</div>
+                </div>
+
+                <div class="form-group span-todo">
+                    <label for="bitActividad">Actividades realizadas *</label>
+                    <textarea id="bitActividad" placeholder="Describa las actividades realizadas" maxlength="600"></textarea>
+                </div>
+
+                <!-- Preguntas definidas por el director/tutor (formulario dinámico) -->
+                <div class="span-todo grid-interno" id="preguntasDinamicas"></div>
+
+                <div class="form-group span-todo">
+                    <label for="bitEnlace">Enlace a carpeta de evidencias (fotos, diario pedagógico) - opcional</label>
+                    <input type="url" id="bitEnlace" placeholder="https://drive.google.com/...">
+                </div>
+                <div class="form-group span-todo">
+                    <label for="bitEtiquetas">Etiquetas de hallazgos para tu proyecto de grado (separadas por coma) - opcional</label>
+                    <input type="text" id="bitEtiquetas" placeholder="ej.: lectura, motivación, evaluación">
+                </div>
+
+                <div class="span-todo fila-botones">
+                    <button type="submit" class="btn-form" id="btnBitacora">Registrar Bitácora</button>
+                    <button type="button" class="btn-form btn-secundario" id="btnCancelarEdicion" hidden>Cancelar corrección</button>
+                    <button type="button" class="btn-form btn-secundario" id="btnDescartarBorrador" hidden>Descartar borrador</button>
+                    <span class="estado-guardado" id="estadoBorrador" aria-live="polite"></span>
+                </div>
+            </form>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Bitácoras Registradas -->
+            <h2>Bitácoras Registradas</h2>
+            <table>
+                <thead><tr><th>Fecha</th><th>Horario</th><th>Actividad</th><th>Horas</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="tablaBitacoras"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>

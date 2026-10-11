@@ -1,0 +1,97 @@
+<!DOCTYPE html><!-- Indica que se está utilizando HTML5 -->
+<html lang="es"><!-- Documento en español -->
+<head><!-- Configuración de la página -->
+    <meta charset="UTF-8"><!-- Permite mostrar caracteres especiales -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Adapta la página a diferentes dispositivos -->
+    <title>Formulario de Bitácora</title><!-- Título de la pestaña -->
+    <link rel="stylesheet" href="assets/estilo.css"><!-- Conecta el archivo CSS -->
+</head>
+<!-- data-pagina: qué función de app.js se ejecuta | data-rol: quién puede entrar a esta página -->
+<body data-pagina="formulario" data-rol="director docente">
+
+<div class="dashboard"><!-- Contenedor principal -->
+
+    <aside class="sidebar"><!-- Barra lateral de navegación -->
+        <div class="sidebar-logo">GP</div><!-- Logo del sistema -->
+        <h2 id="tituloRol">Formulario</h2><!-- Rol del usuario (lo llena app.js) -->
+        <ul class="sidebar-menu" id="menuLateral"></ul><!-- app.js arma el menú según el rol (ver MENUS) -->
+    </aside><!-- Fin de la barra lateral -->
+
+    <main class="content"><!-- Contenido principal -->
+
+        <div class="dashboard-header">
+            <h1>Formulario Dinámico de Bitácoras</h1>
+            <div class="usuario-info">
+                <span id="nombreUsuario"></span>
+                <div class="user-icon">📝</div>
+            </div>
+        </div>
+
+        <p class="ayuda">Las preguntas que agregues aparecen en el formulario de bitácora de todos los estudiantes. Las bitácoras ya entregadas conservan sus respuestas originales.</p>
+
+        <div class="table-container"><!-- Lista de preguntas -->
+            <h2>Preguntas del formulario <small id="pregTotal"></small></h2>
+            <table>
+                <thead><tr><th>#</th><th>Pregunta</th><th>Tipo</th><th>Obligatoria</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="tablaPreguntas"></tbody><!-- app.js llena las filas -->
+            </table>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Agregar / editar pregunta -->
+            <h2 id="tituloFormPregunta">Agregar pregunta</h2>
+            <form id="formPregunta" class="form-grid" novalidate>
+                <input type="text" id="pregTexto" placeholder="Texto de la pregunta" maxlength="150">
+                <select id="pregTipo">
+                    <option value="texto">Texto libre</option>
+                    <option value="numero">Número</option>
+                    <option value="opcion">Opción única</option>
+                </select>
+                <div class="form-group span-todo" id="grupoOpciones" hidden>
+                    <label for="pregOpciones">Opciones (separadas por «|» o coma, de 2 a 8)</label>
+                    <input type="text" id="pregOpciones" placeholder="Alto | Medio | Bajo">
+                </div>
+                <div class="form-group">
+                    <label for="pregObligatoria">¿Es obligatoria?</label>
+                    <select id="pregObligatoria"><option value="no">No</option><option value="si">Sí</option></select>
+                </div>
+                <div class="form-group">
+                    <label for="pregActiva">¿Visible para los estudiantes?</label>
+                    <select id="pregActiva"><option value="si">Sí</option><option value="no">No (oculta)</option></select>
+                </div>
+                <div class="span-todo fila-botones">
+                    <button type="submit" class="btn-form" id="btnGuardarPregunta">Agregar pregunta</button>
+                    <button type="button" class="btn-form btn-secundario" id="btnCancelarPregunta" hidden>Cancelar edición</button>
+                </div>
+            </form>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Importar / exportar -->
+            <h2>Importar o exportar preguntas</h2>
+            <p class="ayuda">Importa un archivo <b>.json</b> (lista de objetos con texto, tipo, obligatoria, opciones) o <b>.csv</b> (columnas: texto;tipo;obligatoria;opciones, con las opciones separadas por «|»). Las preguntas se agregan al final.</p>
+            <div class="fila-botones">
+                <input type="file" id="impArchivo" accept=".json,.csv,.txt">
+                <button type="button" class="btn-form" id="btnImportar">Importar</button>
+                <button type="button" class="btn-form btn-secundario" id="btnExportar">Exportar JSON</button>
+                <button type="button" class="btn-form btn-secundario" id="btnPlantillaCSV">Descargar plantilla CSV</button>
+            </div>
+            <div class="mensaje info" id="resultadoImportacion" hidden></div>
+        </div>
+
+        <br>
+
+        <div class="table-container"><!-- Vista previa -->
+            <h2>Vista previa (así la ve el estudiante)</h2>
+            <div class="form-grid" id="vistaPrevia"></div>
+        </div>
+    </main><!-- Fin del contenido principal -->
+
+</div><!-- Fin del contenedor principal -->
+
+<script type="module" src="assets/live-app.js"></script>
+<script type="module" src="assets/firebase-session.js"></script>
+</body>
+</html>
