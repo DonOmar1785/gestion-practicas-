@@ -70,6 +70,17 @@ export function createCatalogService(supabase) {
       if (!Object.keys(body).length) {
         throw new AppError(400, "No hay campos válidos para actualizar.");
       }
+      if (
+        resource === "practices" &&
+        body.horas_requeridas !== undefined &&
+        (!Number.isInteger(Number(body.horas_requeridas)) ||
+          Number(body.horas_requeridas) < 1)
+      ) {
+        throw new AppError(400, "Las horas requeridas deben ser un entero positivo.");
+      }
+      if (body.fecha_inicio && body.fecha_fin && body.fecha_fin < body.fecha_inicio) {
+        throw new AppError(400, "La fecha final no puede ser anterior a la inicial.");
+      }
 
       const { data, error } = await supabase
         .from(config.table)
@@ -77,6 +88,35 @@ export function createCatalogService(supabase) {
         .eq(config.id, id)
         .select("*")
         .maybeSingle();
+      if (error?.code === "23503") {
+        throw new AppError(409, "No se puede guardar porque hay datos relacionados o referencias inválidas.");
+      }
+      if (error?.code === "23505") {
+        throw new AppError(409, "Ya existe un registro con esos datos.");
+      }
+      throwDatabaseError(error);
+      if (!data) throw new AppError(404, "No se encontró el registro solicitado.");
+      return data;
+    },
+
+    async remove(resource, id) {
+      const config = CATALOG_MODELS[resource];
+      if (!Number.isInteger(Number(id)) || Number(id) < 1) {
+        throw new AppError(400, "Identificador de registro inválido.");
+      }
+
+      const { data, error } = await supabase
+        .from(config.table)
+        .delete()
+        .eq(config.id, id)
+        .select(config.id)
+        .maybeSingle();
+      if (error?.code === "23503") {
+        throw new AppError(
+          409,
+          "No se puede eliminar porque el registro tiene datos relacionados.",
+        );
+      }
       throwDatabaseError(error);
       if (!data) throw new AppError(404, "No se encontró el registro solicitado.");
       return data;

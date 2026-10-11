@@ -1012,6 +1012,8 @@ td{
 .horas-calc{ padding:12px; background:#eef6f9; border-radius:8px; font-weight:bold; color:#163b52; }
 .acciones-fila{ white-space:nowrap; }
 .acciones-fila .btn-mini{ margin-right:4px; }
+.management-actions{ white-space:nowrap; }
+.management-actions .btn-mini{ margin-right:6px; }
 .btn-mini.rojo{ background:#dc3545; }
 .btn-mini.rojo:hover{ background:#b02a37; }
 .btn-mini:disabled{ background:#b8c2c9; cursor:not-allowed; }

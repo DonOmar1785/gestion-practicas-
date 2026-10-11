@@ -39,6 +39,8 @@ export function createApiRouter({ authenticate, services, realtime }) {
   router.get("/me", asyncHandler(controller.me));
   router.get("/users", authorize(...MANAGER_ROLES), asyncHandler(controller.listUsers));
   router.post("/users", authorize(...MANAGER_ROLES), asyncHandler(controller.createUser));
+  router.put("/users/:id", authorize(...MANAGER_ROLES), asyncHandler(controller.updateUser));
+  router.delete("/users/:id", authorize("director"), asyncHandler(controller.deleteUser));
 
   for (const resource of CATALOGS) {
     router.get(
@@ -56,6 +58,13 @@ export function createApiRouter({ authenticate, services, realtime }) {
       authorize(...MANAGER_ROLES),
       asyncHandler((req, res) => controller.updateResource(resource, req, res)),
     );
+    if (["institutions", "practices"].includes(resource)) {
+      router.delete(
+        `/${resource}/:id`,
+        authorize("director"),
+        asyncHandler((req, res) => controller.deleteResource(resource, req, res)),
+      );
+    }
   }
 
   router.get("/assignments", asyncHandler(controller.listAssignments));

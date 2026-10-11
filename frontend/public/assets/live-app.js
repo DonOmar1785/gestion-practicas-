@@ -59,6 +59,18 @@ const labels = {
   id_programa: "Programa",
   nombre_programa: "Programa",
   nombre_institucion: "Institución",
+  ciudad: "Ciudad",
+  direccion: "Dirección",
+  telefono: "Teléfono",
+  estado_institucion: "Estado de la institución",
+  fecha_fin: "Fecha de fin",
+  horas_requeridas: "Horas requeridas",
+  estado_horas: "Estado de horas",
+  estado_practica: "Estado de la práctica",
+  estado_seg: "Estado de seguro",
+  semestre: "Semestre",
+  tipo_practica: "Tipo de práctica",
+  facultad: "Facultad",
   nombre_completo: "Nombre",
   correo: "Correo",
   rol: "Rol",
@@ -145,6 +157,120 @@ function renderTable(section, rows) {
   section.append(table);
 }
 
+function renderManagementTable(section, rows, resource, idField, editableFields) {
+  if (!rows.length) {
+    section.append(element("p", "No hay registros en Supabase.", "ayuda"));
+    return;
+  }
+
+  const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+  const table = element("table");
+  const head = element("thead");
+  const header = element("tr");
+  for (const key of [...keys, "acciones"]) {
+    header.append(element("th", key === "acciones" ? "Acciones" : labels[key] || key));
+  }
+  head.append(header);
+  const body = element("tbody");
+
+  for (const row of rows) {
+    const tableRow = element("tr");
+    for (const key of keys) {
+      const cell = element("td");
+      cell.textContent = display(row[key]);
+      tableRow.append(cell);
+    }
+    const actions = element("td", undefined, "management-actions");
+    const editButton = element("button", "Modificar", "btn-mini");
+    editButton.type = "button";
+    editButton.addEventListener("click", () => {
+      for (let index = 0; index < keys.length; index += 1) {
+        const key = keys[index];
+        const field = editableFields.find((item) => item.key === key);
+        if (!field) continue;
+        const input = document.createElement("input");
+        input.type = field.type || "text";
+        input.name = key;
+        input.value = row[key] ?? "";
+        input.required = field.required === true;
+        if (field.type === "number") input.step = "1";
+        tableRow.children[index].replaceChildren(input);
+      }
+      actions.replaceChildren();
+      const saveButton = element("button", "Guardar", "btn-mini");
+      saveButton.type = "button";
+      saveButton.addEventListener("click", async () => {
+        const changes = {};
+        for (const field of editableFields) {
+          const input = tableRow.querySelector(`[name="${field.key}"]`);
+          if (!input) continue;
+          const value = input.value.trim();
+          changes[field.key] = field.type === "number"
+            ? (value === "" ? null : Number(value))
+            : (value === "" ? null : value);
+        }
+        try {
+          await window.apiRequest(`/${resource}/${row[idField]}`, {
+            method: "PUT",
+            body: JSON.stringify(changes),
+          });
+          window.gpRefreshCurrentPage();
+        } catch (error) {
+          window.alert(error.message);
+        }
+      });
+      const cancelButton = element("button", "Cancelar", "btn-mini");
+      cancelButton.type = "button";
+      cancelButton.addEventListener("click", () => window.gpRefreshCurrentPage());
+      actions.append(saveButton, cancelButton);
+    });
+
+    const deleteButton = element("button", "Eliminar", "btn-mini rojo");
+    deleteButton.type = "button";
+    deleteButton.addEventListener("click", async () => {
+      if (!window.confirm("Esta acción es definitiva. Si el registro tiene datos relacionados, no podrá eliminarse. ¿Deseas continuar?")) {
+        return;
+      }
+      try {
+        await window.apiRequest(`/${resource}/${row[idField]}`, { method: "DELETE" });
+        window.gpRefreshCurrentPage();
+      } catch (error) {
+        window.alert(error.message);
+      }
+    });
+    actions.append(editButton, deleteButton);
+    tableRow.append(actions);
+    body.append(tableRow);
+  }
+
+  table.append(head, body);
+  section.append(table);
+}
+
+const userEditableFields = [
+  { key: "nombre_completo", required: true },
+  { key: "correo", type: "email", required: true },
+];
+const institutionEditableFields = [
+  { key: "nombre_institucion", required: true },
+  { key: "ciudad" },
+  { key: "direccion" },
+  { key: "telefono" },
+  { key: "estado_institucion" },
+];
+const practiceEditableFields = [
+  { key: "fecha_inicio", type: "date" },
+  { key: "fecha_fin", type: "date" },
+  { key: "horas_requeridas", type: "number", required: true },
+  { key: "estado_horas" },
+  { key: "estado_practica" },
+  { key: "estado_seg" },
+  { key: "id_programa", type: "number" },
+  { key: "id_ciclo", type: "number" },
+  { key: "semestre", type: "number" },
+  { key: "tipo_practica" },
+];
+
 async function loadResource(resource) {
   return window.apiRequest(`/${resource}`);
 }
@@ -172,6 +298,12 @@ async function renderPage(main, page) {
           indicador: key,
           total: count,
         })));
+      } else if (currentUser().rol === "director" && resource === "users") {
+        renderManagementTable(section, Array.isArray(value) ? value : [], "users", "id_usuario", userEditableFields);
+      } else if (currentUser().rol === "director" && resource === "practices") {
+        renderManagementTable(section, Array.isArray(value) ? value : [], "practices", "id_practica", practiceEditableFields);
+      } else if (currentUser().rol === "director" && resource === "institutions") {
+        renderManagementTable(section, Array.isArray(value) ? value : [], "institutions", "id_institucion", institutionEditableFields);
       } else {
         renderTable(section, Array.isArray(value) ? value : []);
       }
@@ -181,8 +313,13 @@ async function renderPage(main, page) {
     const summary = data["reports/summary"] || {};
     const stats = addSection(main, "Resumen actual");
     renderTable(stats, Object.entries(summary).map(([indicador, total]) => ({ indicador, total })));
-    renderTable(addSection(main, "Usuarios"), data.users || []);
-    renderTable(addSection(main, "Prácticas"), data.practices || []);
+    if (currentUser().rol === "director") {
+      renderManagementTable(addSection(main, "Usuarios"), data.users || [], "users", "id_usuario", userEditableFields);
+      renderManagementTable(addSection(main, "Prácticas"), data.practices || [], "practices", "id_practica", practiceEditableFields);
+    } else {
+      renderTable(addSection(main, "Usuarios"), data.users || []);
+      renderTable(addSection(main, "Prácticas"), data.practices || []);
+    }
     renderTable(addSection(main, "Actividad reciente"), (data.audit || []).slice(0, 30));
   }
   if (pageKeyForForms === "gestion-academica") renderAcademicForms(main, data);
@@ -284,9 +421,17 @@ function renderAcademicForms(main, data) {
     }
   });
 
-  renderTable(addSection(main, "Usuarios registrados"), users);
+  if (currentUser().rol === "director") {
+    renderManagementTable(addSection(main, "Usuarios registrados"), users, "users", "id_usuario", userEditableFields);
+  } else {
+    renderTable(addSection(main, "Usuarios registrados"), users);
+  }
   renderTable(addSection(main, "Programas académicos"), programs);
-  renderTable(addSection(main, "Instituciones"), institutions);
+  if (currentUser().rol === "director") {
+    renderManagementTable(addSection(main, "Instituciones"), institutions, "institutions", "id_institucion", institutionEditableFields);
+  } else {
+    renderTable(addSection(main, "Instituciones"), institutions);
+  }
 }
 
 function renderDocumentForm(main, data) {

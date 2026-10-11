@@ -78,8 +78,10 @@ Las rutas protegidas reciben un encabezado `Authorization` con el esquema
 | GET | `/api/health` | Público; comprueba Supabase |
 | GET | `/api/config/firebase` | Público; configuración web |
 | GET | `/api/me` | Cualquier cuenta activa |
-| GET, POST | `/api/users` | Director, tutor |
+| GET, POST, PUT | `/api/users` | Director, tutor; PUT modifica nombre/correo en Firebase y Supabase |
+| DELETE | `/api/users/:id` | Solo Director; definitivo, bloqueado si existen datos relacionados |
 | GET, POST, PUT | `/api/programs`, `/api/cycles`, `/api/institutions`, `/api/practices` | Director, tutor |
+| DELETE | `/api/institutions/:id`, `/api/practices/:id` | Solo Director; bloqueado si existen datos relacionados |
 | GET, POST | `/api/assignments` | GET según rol; POST director/tutor |
 | GET, POST | `/api/sessions` | GET según rol; POST director/tutor |
 | PATCH | `/api/sessions/:id/state` | Director, tutor |

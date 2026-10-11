@@ -50,6 +50,125 @@ test("catalog service ignores unapproved fields when inserting", async () => {
   assert.equal(result.nombre_programa, "Educación Infantil");
 });
 
+test("catalog deletion reports a conflict when related rows prevent deletion", async () => {
+  const query = {
+    delete() {
+      return this;
+    },
+    eq() {
+      return this;
+    },
+    select() {
+      return this;
+    },
+    maybeSingle() {
+      return Promise.resolve({
+        data: null,
+        error: { code: "23503", message: "foreign key violation" },
+      });
+    },
+  };
+  const service = createCatalogService({ from: () => query });
+
+  await assert.rejects(service.remove("institutions", 3), {
+    status: 409,
+    message: "No se puede eliminar porque el registro tiene datos relacionados.",
+  });
+});
+
+test("user deletion preserves Firebase access if Supabase rejects related data", async () => {
+  const firebaseUpdates = [];
+  const query = {
+    deleting: false,
+    select() {
+      return this;
+    },
+    eq() {
+      return this;
+    },
+    delete() {
+      this.deleting = true;
+      return this;
+    },
+    maybeSingle() {
+      return Promise.resolve(this.deleting
+        ? { data: null, error: { code: "23503", message: "foreign key violation" } }
+        : { data: { id_usuario: 22, uid_firebase: "firebase-22" }, error: null });
+    },
+  };
+  const service = createUserService({
+    supabase: { from: () => query },
+    firebaseAuth: {
+      async updateUser(uid, changes) {
+        firebaseUpdates.push({ uid, changes });
+      },
+    },
+  });
+
+  await assert.rejects(service.remove(22, { id_usuario: 17 }), {
+    status: 409,
+    message: "No se puede eliminar porque el usuario tiene asignaciones, bitácoras u otros datos relacionados.",
+  });
+  assert.deepEqual(firebaseUpdates, [
+    { uid: "firebase-22", changes: { disabled: true } },
+    { uid: "firebase-22", changes: { disabled: false } },
+  ]);
+});
+
+test("user updates synchronize the normalized name and email with Firebase", async () => {
+  const storedUser = {
+    id_usuario: 22,
+    uid_firebase: "firebase-22",
+    nombre_completo: "Nombre anterior",
+    correo: "old@example.test",
+    rol: "Tutor",
+    estado: "Activo",
+  };
+  const firebaseUpdates = [];
+  const service = createUserService({
+    supabase: {
+      from() {
+        const query = {
+          select() {
+            return this;
+          },
+          eq() {
+            return this;
+          },
+          maybeSingle() {
+            return Promise.resolve({ data: { ...storedUser }, error: null });
+          },
+          update(changes) {
+            this.changes = changes;
+            return this;
+          },
+          single() {
+            Object.assign(storedUser, this.changes);
+            return Promise.resolve({ data: { ...storedUser }, error: null });
+          },
+        };
+        return query;
+      },
+    },
+    firebaseAuth: {
+      async updateUser(uid, changes) {
+        firebaseUpdates.push({ uid, changes });
+      },
+    },
+  });
+
+  const result = await service.update(22, {
+    nombre_completo: "Nombre nuevo",
+    correo: "NEW@example.test",
+  });
+  assert.equal(result.nombre_completo, "Nombre nuevo");
+  assert.equal(result.correo, "new@example.test");
+  assert.deepEqual(firebaseUpdates, [{
+    uid: "firebase-22",
+    changes: { displayName: "Nombre nuevo", email: "new@example.test" },
+  }]);
+});
+
 test("DOCX question importer requires a file and reports a useful validation error", async () => {
   await assert.rejects(importDocxQuestions(null), {
     status: 400,

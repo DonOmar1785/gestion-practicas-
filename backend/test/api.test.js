@@ -104,4 +104,10 @@ test("protected routes reject missing tokens and enforce role permissions", asyn
     headers: { Authorization: "Bearer valid-token" },
   });
   assert.equal(forbidden.status, 403);
+
+  const forbiddenDelete = await fetch(url("/api/practices/1"), {
+    method: "DELETE",
+    headers: { Authorization: "Bearer valid-token" },
+  });
+  assert.equal(forbiddenDelete.status, 403);
 });

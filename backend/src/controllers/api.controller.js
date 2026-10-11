@@ -19,6 +19,14 @@ export function createApiController(services) {
       res.status(201).json({ data: await services.users.create(req.body) });
     },
 
+    async updateUser(req, res) {
+      res.json({ data: await services.users.update(req.params.id, req.body) });
+    },
+
+    async deleteUser(req, res) {
+      res.json({ data: await services.users.remove(req.params.id, req.actor) });
+    },
+
     async listResource(resource, _req, res) {
       res.json({ data: await services.catalog.list(resource) });
     },
@@ -30,6 +38,12 @@ export function createApiController(services) {
     async updateResource(resource, req, res) {
       res.json({
         data: await services.catalog.update(resource, req.params.id, req.body),
+      });
+    },
+
+    async deleteResource(resource, req, res) {
+      res.json({
+        data: await services.catalog.remove(resource, req.params.id),
       });
     },
 
