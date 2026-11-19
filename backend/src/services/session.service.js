@@ -1,3 +1,5 @@
+// Controla sesiones y preguntas de bitácora con fechas, visibilidad y validación de respuestas.
+
 import { randomBytes } from "node:crypto";
 import { AppError } from "../utils/app-error.js";
 import { MANAGER_ROLES } from "../utils/roles.js";
@@ -12,7 +14,8 @@ function isValidDate(value) {
   return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
 }
 
-export function createSessionService({ supabase, assignmentService }) {
+// Crea sesiones de bitácora y reemplaza las preguntas activas de cada bloque.
+export function createSessionService({ supabase, practiceService }) {
   return {
     async list(actor) {
       let query = supabase
@@ -21,20 +24,22 @@ export function createSessionService({ supabase, assignmentService }) {
         .eq("pregunta_bitacora.activa", true)
         .order("fecha_inicio", { ascending: false });
 
-      if (!MANAGER_ROLES.includes(actor.role)) {
-        const assignments = await assignmentService.listFor(actor);
-        const practiceIds = [...new Set(assignments.map((item) => item.id_practica))];
-        if (!practiceIds.length) return [];
-        query = query.in("id_practica", practiceIds).eq("visible", true);
-      }
-
       const { data, error } = await query;
       throwDatabaseError(error);
-      return data;
+      if (MANAGER_ROLES.includes(actor.role)) return data;
+
+      const practices = await practiceService.listFor(actor);
+      const groups = new Set(practices.map((practice) =>
+        `${practice.id_ciclo}:${practice.estudiante?.id_programa}:${practice.semestre}`,
+      ));
+      return data.filter((session) =>
+        session.visible === true &&
+        groups.has(`${session.id_ciclo}:${session.id_programa}:${session.semestre}`),
+      );
     },
 
     async create(input, actor) {
-      const { nombre, descripcion, fecha_inicio, fecha_fin, id_programa, id_ciclo, id_practica, preguntas = [] } =
+      const { nombre, descripcion, fecha_inicio, fecha_fin, id_programa, id_ciclo, semestre, preguntas = [] } =
         input ?? {};
       if (
         typeof nombre !== "string" ||
@@ -42,13 +47,32 @@ export function createSessionService({ supabase, assignmentService }) {
         !isValidDate(fecha_inicio) ||
         !isValidDate(fecha_fin) ||
         new Date(fecha_fin) < new Date(fecha_inicio) ||
+        !Number.isInteger(Number(id_programa)) ||
+        Number(id_programa) < 1 ||
+        !Number.isInteger(Number(id_ciclo)) ||
+        Number(id_ciclo) < 1 ||
+        !Number.isInteger(Number(semestre)) ||
+        Number(semestre) < 1 ||
+        Number(semestre) > 12 ||
         !Array.isArray(preguntas)
       ) {
-        throw new AppError(400, "Verifica el nombre, fechas y lista de preguntas de la bitácora.");
+        throw new AppError(400, "Verifica el nombre, ciclo, programa, semestre, fechas y preguntas de la bitácora.");
       }
+      
+      // Las preguntas dinámicas se normalizan antes de guardar para evitar valores vacíos o inválidos.
+      
       const normalizedQuestions = preguntas.map((question, index) =>
         normalizeQuestion(question, 1, index),
       );
+      const { data: cycle, error: cycleError } = await supabase
+        .from("ciclo_practica")
+        .select("estado_ciclo")
+        .eq("id_ciclo", Number(id_ciclo))
+        .maybeSingle();
+      throwDatabaseError(cycleError);
+      if (!cycle || cycle.estado_ciclo !== "Abierto") {
+        throw new AppError(409, "Selecciona un ciclo abierto.");
+      }
 
       const { data: session, error } = await supabase
         .from("sesion_bitacora")
@@ -61,9 +85,9 @@ export function createSessionService({ supabase, assignmentService }) {
           estado: "Abierta",
           visible: true,
           id_creado_por: actor.id_usuario,
-          id_programa: id_programa ?? null,
-          id_ciclo: id_ciclo ?? null,
-          id_practica: id_practica ?? null,
+          id_programa: Number(id_programa),
+          id_ciclo: Number(id_ciclo),
+          semestre: Number(semestre),
         })
         .select("*")
         .single();
@@ -90,6 +114,38 @@ export function createSessionService({ supabase, assignmentService }) {
       }
 
       return session;
+    },
+
+    async duplicate(id, input, actor) {
+      if (!Number.isInteger(Number(id)) || Number(id) < 1) {
+        throw new AppError(400, "Identificador de sesión inválido.");
+      }
+      const { data: source, error } = await supabase
+        .from("sesion_bitacora")
+        .select("nombre, descripcion, fecha_inicio, fecha_fin, pregunta_bitacora(*)")
+        .eq("id_sesion", id)
+        .maybeSingle();
+      throwDatabaseError(error);
+      if (!source) throw new AppError(404, "No se encontró la sesión que deseas duplicar.");
+      const { id_ciclo, id_programa, semestre, fecha_inicio, fecha_fin, nombre } = input ?? {};
+      return this.create({
+        nombre: nombre || `${source.nombre} (copia)`,
+        descripcion: source.descripcion,
+        fecha_inicio: fecha_inicio || source.fecha_inicio,
+        fecha_fin: fecha_fin || source.fecha_fin,
+        id_ciclo,
+        id_programa,
+        semestre,
+        preguntas: (source.pregunta_bitacora || [])
+          .filter((question) => question.activa)
+          .map(({ texto, tipo, obligatoria, opciones, orden }) => ({
+            texto,
+            tipo,
+            obligatoria,
+            opciones,
+            orden,
+          })),
+      }, actor);
     },
 
     async setState(id, input) {

@@ -1,3 +1,5 @@
+// Resume conteos de tablas clave para paneles administrativos y métricas rápidas.
+
 function throwDatabaseError(error) {
   if (error) throw new Error(`Supabase: ${error.message}`);
 }
@@ -8,7 +10,6 @@ export function createReportService(supabase) {
       const tables = [
         ["estudiantes", "estudiante"],
         ["practicas", "practica"],
-        ["asignaciones", "asignacion_estudiante"],
         ["bitacoras", "bitacora"],
         ["documentos", "documento"],
         ["instituciones", "institucion"],

@@ -1,3 +1,5 @@
+// Extrae preguntas de un documento DOCX y verifica la sesión antes de reutilizar contenido.
+
 import { DOMParser } from "@xmldom/xmldom";
 import { TextWriter, Uint8ArrayReader, ZipReader } from "@zip.js/zip.js";
 import { AppError } from "../utils/app-error.js";
@@ -74,6 +76,7 @@ async function parseDocxQuestions(file) {
   }));
 }
 
+// Importa preguntas desde Word y valida el identificador de la sesión asociada.
 export function createQuestionImportService(supabase) {
   return async function importDocxQuestions(file, sessionId) {
     const id = Number(sessionId);

@@ -1,3 +1,5 @@
+// Expone la capa HTTP y delega la lógica de negocio a cada servicio del backend.
+
 import { AppError } from "../utils/app-error.js";
 
 export function createApiController(services) {
@@ -48,12 +50,12 @@ export function createApiController(services) {
       });
     },
 
-    async listAssignments(req, res) {
-      res.json({ data: await services.assignments.listFor(req.actor) });
+    async listPractices(req, res) {
+      res.json({ data: await services.practices.listFor(req.actor) });
     },
 
-    async createAssignment(req, res) {
-      res.status(201).json({ data: await services.assignments.create(req.body) });
+    async createPracticeBatch(req, res) {
+      res.status(201).json({ data: await services.practices.createBatch(req.body) });
     },
 
     async listSessions(req, res) {
@@ -62,6 +64,12 @@ export function createApiController(services) {
 
     async createSession(req, res) {
       res.status(201).json({ data: await services.sessions.create(req.body, req.actor) });
+    },
+
+    async duplicateSession(req, res) {
+      res.status(201).json({
+        data: await services.sessions.duplicate(req.params.id, req.body, req.actor),
+      });
     },
 
     async updateSessionState(req, res) {
@@ -164,6 +172,25 @@ export function createApiController(services) {
         throw new AppError(503, "La configuración web de Firebase no está completa.");
       }
       res.set("Cache-Control", "public, max-age=300").json(config);
+    },
+
+    async listNotifications(req, res) {
+      if (!services.notifications) throw new AppError(503, "Firebase Cloud Messaging no está configurado.");
+      res.json({ data: await services.notifications.list(req.actor.uid_firebase) });
+    },
+
+    async registerNotificationToken(req, res) {
+      if (!services.notifications) throw new AppError(503, "Firebase Cloud Messaging no está configurado.");
+      res.status(201).json({
+        data: await services.notifications.registerToken(req.actor.uid_firebase, req.body?.token),
+      });
+    },
+
+    async removeNotificationToken(req, res) {
+      if (!services.notifications) throw new AppError(503, "Firebase Cloud Messaging no está configurado.");
+      res.json({
+        data: await services.notifications.removeToken(req.actor.uid_firebase, req.body?.token),
+      });
     },
   };
 }

@@ -1,3 +1,5 @@
+// Revisa archivos DOCX antes de importarlos para evitar cargas no válidas o demasiado grandes.
+
 import multer from "multer";
 import { AppError } from "../utils/app-error.js";
 

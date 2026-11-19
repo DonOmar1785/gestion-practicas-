@@ -1,3 +1,5 @@
+-- Completa la relación de estudiante con semestre y su validación de dominio.
+
 begin;
 
 alter table public.estudiante

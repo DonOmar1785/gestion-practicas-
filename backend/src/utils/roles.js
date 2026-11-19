@@ -1,3 +1,8 @@
+// Normaliza aliases de roles para decidir permisos en rutas protegidas y servicios.
+
+
+// El catálogo de aliases evita que nombres con acentos o variantes se interpreten como roles distintos.
+
 const ROLE_ALIASES = new Map([
   ["director", "director"],
   ["director de programa", "director"],

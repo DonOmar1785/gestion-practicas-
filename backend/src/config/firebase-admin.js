@@ -1,3 +1,5 @@
+// Configura Firebase Admin para verificar tokens y crear usuarios con la cuenta de la app.
+
 import { readFileSync } from "node:fs";
 import {
   applicationDefault,
@@ -6,6 +8,8 @@ import {
   initializeApp,
 } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import { getMessaging } from "firebase-admin/messaging";
 
 function parseServiceAccount(json, source) {
   let serviceAccount;
@@ -41,7 +45,8 @@ function serviceAccountCredential() {
   return applicationDefault();
 }
 
-export function createFirebaseAuth() {
+// Crea la autenticación del backend usando el proyecto Firebase y credenciales locales.
+function getFirebaseApp() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   if (!projectId) {
     throw new Error("FIREBASE_PROJECT_ID no está configurado.");
@@ -54,5 +59,18 @@ export function createFirebaseAuth() {
       projectId,
     });
 
-  return getAuth(app);
+  return app;
+}
+
+export function createFirebaseAuth() {
+  return getAuth(getFirebaseApp());
+}
+
+export function createFirebaseAdminServices() {
+  const app = getFirebaseApp();
+  return {
+    firebaseAuth: getAuth(app),
+    firebaseFirestore: getFirestore(app),
+    firebaseMessaging: getMessaging(app),
+  };
 }

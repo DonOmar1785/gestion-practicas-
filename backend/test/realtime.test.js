@@ -1,3 +1,5 @@
+// Comprueba que el hub de eventos solo repite cambios suscritos y no deja conexiones activas.
+
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRealtimeHub } from "../src/utils/realtime.js";

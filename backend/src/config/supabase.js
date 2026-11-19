@@ -1,3 +1,5 @@
+// Cliente de Supabase con permisos de servicio para consultas y escrituras administrativas.
+
 import { createClient } from "@supabase/supabase-js";
 
 export function createSupabaseClient() {

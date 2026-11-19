@@ -1,3 +1,5 @@
+// Hub local para publicar cambios y notificar a clientes conectados por Server-Sent Events.
+
 export function createRealtimeHub() {
   const listeners = new Set();
 

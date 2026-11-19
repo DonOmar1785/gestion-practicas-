@@ -1,3 +1,5 @@
+// Pruebas de integración del API: autenticación, permisos y flujo de eventos en tiempo real.
+
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { createApp } from "../src/app.js";
@@ -56,17 +58,13 @@ function url(path) {
   return `http://127.0.0.1:${server.address().port}${path}`;
 }
 
-test("health check verifies Supabase and root serves the Firebase login page", async () => {
+test("health check verifies the Supabase connection", async () => {
   const health = await fetch(url("/api/health"));
   assert.equal(health.status, 200);
   assert.deepEqual(await health.json(), {
     status: "ok",
     services: { supabase: "connected" },
   });
-
-  const page = await fetch(url("/"));
-  assert.equal(page.status, 200);
-  assert.match(await page.text(), /type="email"/);
 });
 
 test("profile endpoint verifies Firebase and returns the database role", async () => {

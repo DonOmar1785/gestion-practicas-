@@ -1,3 +1,5 @@
+// Relación entre rol y tabla hija para no repetir validaciones ni nombres de columnas.
+
 export const USER_ROLE_MODELS = Object.freeze({
   director: Object.freeze({ table: "director", foreignKey: "id_director" }),
   estudiante: Object.freeze({ table: "estudiante", foreignKey: "id_estudiante" }),

@@ -1,3 +1,5 @@
+// Verifica el token de Firebase, exige correo confirmado y carga el perfil activo del usuario.
+
 import { AppError } from "../utils/app-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { normalizeRole } from "../utils/roles.js";

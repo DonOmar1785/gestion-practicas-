@@ -1,3 +1,5 @@
+// Normaliza errores HTTP para responder con mensajes útiles sin filtrar detalles internos.
+
 export function errorHandler(error, _req, res, _next) {
   const uploadErrorStatus =
     error.code === "LIMIT_FILE_SIZE" ? 413 : error.code === "LIMIT_UNEXPECTED_FILE" ? 400 : null;

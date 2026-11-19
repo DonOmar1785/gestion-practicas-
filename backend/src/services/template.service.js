@@ -1,3 +1,5 @@
+// Mantiene plantillas del tutor con restricción de propietario y validaciones de contenido.
+
 import { AppError } from "../utils/app-error.js";
 
 function throwDatabaseError(error) {

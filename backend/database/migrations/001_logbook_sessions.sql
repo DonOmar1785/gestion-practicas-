@@ -1,3 +1,5 @@
+-- Añade sesiones, preguntas y auditoría para la bitácora con validaciones de negocio.
+
 begin;
 
 alter table public.practica
@@ -35,6 +37,7 @@ alter table public.bitacora
   add column if not exists retroalimentacion_tutor text,
   add column if not exists revisado_por integer references public.usuario(id_usuario);
 
+-- Tabla principal de sesiones de bitácora y su alcance por práctica, programa y ciclo.
 create table if not exists public.sesion_bitacora (
   id_sesion bigserial primary key,
   nombre varchar(150) not null,
@@ -72,6 +75,7 @@ create table if not exists public.respuesta_bitacora (
   unique (id_bitacora, id_pregunta)
 );
 
+-- Reemplaza preguntas activas sin perder respuestas ya registradas por la sesión.
 create or replace function public.replace_logbook_questions(
   p_id_sesion bigint,
   p_preguntas jsonb
@@ -121,6 +125,7 @@ begin
 end;
 $$;
 
+-- Actualiza el estado final de la bitácora y recalcula horas aprobadas por asignación.
 create or replace function public.review_logbook(
   p_id_bitacora integer,
   p_estado varchar,
@@ -221,6 +226,7 @@ create index if not exists idx_bitacora_asignacion_fecha
 create index if not exists idx_respuesta_bitacora_logbook
   on public.respuesta_bitacora(id_bitacora);
 
+-- Registra cada cambio de API con usuario, entidad y detalle del evento.
 create table if not exists public.evento_auditoria (
   id_evento bigserial primary key,
   id_usuario integer references public.usuario(id_usuario) on delete set null,

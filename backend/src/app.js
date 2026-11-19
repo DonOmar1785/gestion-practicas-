@@ -1,3 +1,5 @@
+// Construye la API Express con autenticación, servicios y archivos estáticos del frontend.
+
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cors from "cors";
@@ -6,11 +8,12 @@ import helmet from "helmet";
 import { createAuthenticate } from "./middleware/authenticate.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { createApiRouter } from "./routes/api.routes.js";
-import { createAssignmentService } from "./services/assignment.service.js";
 import { createAuditService } from "./services/audit.service.js";
 import { createCatalogService } from "./services/catalog.service.js";
 import { createDocumentService } from "./services/document.service.js";
 import { createLogbookService } from "./services/logbook.service.js";
+import { createNotificationService } from "./services/notification.service.js";
+import { createPracticeService } from "./services/practice.service.js";
 import { createReportService } from "./services/report.service.js";
 import { createQuestionImportService } from "./services/question-import.service.js";
 import { createSessionService } from "./services/session.service.js";
@@ -20,20 +23,31 @@ import { AppError } from "./utils/app-error.js";
 import { createRealtimeHub } from "./utils/realtime.js";
 
 const projectRoot = fileURLToPath(new URL("../../", import.meta.url));
-const staticRoot = path.join(projectRoot, "frontend", "public");
+const staticRoot = path.join(projectRoot, "frontend", "dist");
 
-export function createApp({ supabase, firebaseAuth, realtime = createRealtimeHub() }) {
+// Construye la aplicación con rutas, seguridad y servicios compartidos.
+export function createApp({
+  supabase,
+  firebaseAuth,
+  firebaseFirestore,
+  firebaseMessaging,
+  realtime = createRealtimeHub(),
+}) {
   const app = express();
   const users = createUserService({ supabase, firebaseAuth });
-  const assignments = createAssignmentService(supabase);
+  const practices = createPracticeService(supabase);
+  const notifications = firebaseFirestore && firebaseMessaging
+    ? createNotificationService({ supabase, firestore: firebaseFirestore, messaging: firebaseMessaging })
+    : null;
   const services = {
     users,
     audit: createAuditService(supabase),
     catalog: createCatalogService(supabase),
-    assignments,
-    sessions: createSessionService({ supabase, assignmentService: assignments }),
-    logbooks: createLogbookService({ supabase, assignmentService: assignments }),
-    documents: createDocumentService({ supabase, assignmentService: assignments }),
+    practices,
+    sessions: createSessionService({ supabase, practiceService: practices }),
+    logbooks: createLogbookService({ supabase, practiceService: practices, notifications }),
+    documents: createDocumentService({ supabase, practiceService: practices, notifications }),
+    notifications,
     reports: createReportService(supabase),
     questionImport: createQuestionImportService(supabase),
     templates: createTemplateService(supabase),
@@ -52,6 +66,9 @@ export function createApp({ supabase, firebaseAuth, realtime = createRealtimeHub
             "https://identitytoolkit.googleapis.com",
             "https://securetoken.googleapis.com",
             "https://www.googleapis.com",
+            "https://firebaseinstallations.googleapis.com",
+            "https://fcmregistrations.googleapis.com",
+            "https://fcm.googleapis.com",
           ],
           frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.web.app"],
           styleSrc: ["'self'", "'unsafe-inline'"],
@@ -65,7 +82,7 @@ export function createApp({ supabase, firebaseAuth, realtime = createRealtimeHub
   app.use(
     cors({
       origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
-      methods: ["GET", "POST", "PUT", "PATCH", "OPTIONS"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Authorization", "Content-Type"],
     }),
   );
@@ -92,10 +109,13 @@ export function createApp({ supabase, firebaseAuth, realtime = createRealtimeHub
       realtime,
     }),
   );
-  app.use("/assets", express.static(path.join(staticRoot, "assets")));
-  app.use(express.static(staticRoot, { extensions: ["html"] }));
-  app.get("/", (_req, res) => res.sendFile(path.join(staticRoot, "01-login.html")));
   app.use("/api", (_req, _res, next) => next(new AppError(404, "Ruta de API no encontrada.")));
+  app.use(express.static(staticRoot));
+  app.get(/.*/, (_req, res, next) => {
+    res.sendFile(path.join(staticRoot, "index.html"), (error) => {
+      if (error) next(new AppError(503, "El frontend no está compilado. Ejecuta npm run build en frontend."));
+    });
+  });
   app.use(errorHandler);
 
   return app;

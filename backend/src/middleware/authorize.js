@@ -1,3 +1,5 @@
+// Verifica que el actor actual tenga el rol necesario para acceder a cada endpoint.
+
 import { AppError } from "../utils/app-error.js";
 
 export function authorize(...allowedRoles) {

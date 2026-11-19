@@ -1,3 +1,5 @@
+// Registra bitácoras, evalúa tutor/asesor y actualiza las horas de la práctica.
+
 import { AppError } from "../utils/app-error.js";
 
 function throwDatabaseError(error) {
@@ -26,19 +28,20 @@ function isValidDate(value) {
   return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
 }
 
-export function createLogbookService({ supabase, assignmentService }) {
+// Administra la bitácora del estudiante con validación de fechas, horas y evaluaciones.
+export function createLogbookService({ supabase, practiceService, notifications }) {
   return {
     async list(actor) {
       let query = supabase
         .from("bitacora")
-        .select("*, asignacion_estudiante!inner(*), respuesta_bitacora(*, pregunta_bitacora(id_pregunta, texto, tipo, orden)), evaluacion_asesor(*), evaluacion_tutor(*)")
+        .select("*, practica!inner(*), respuesta_bitacora(*, pregunta_bitacora(id_pregunta, texto, tipo, orden)), evaluacion_asesor(*), evaluacion_tutor(*)")
         .order("fecha", { ascending: false });
 
       if (["estudiante", "tutor", "asesor"].includes(actor.role)) {
-        const assignments = await assignmentService.listFor(actor);
-        const ids = assignments.map((assignment) => assignment.id_asignacion);
+        const practices = await practiceService.listFor(actor);
+        const ids = practices.map((practice) => practice.id_practica);
         if (!ids.length) return [];
-        query = query.in("id_asignacion", ids);
+        query = query.in("id_practica", ids);
       }
 
       const { data, error } = await query;
@@ -48,7 +51,7 @@ export function createLogbookService({ supabase, assignmentService }) {
 
     async create(input, actor) {
       const {
-        idAsignacion,
+        idPractica,
         idSesion,
         fecha,
         actividad,
@@ -61,23 +64,23 @@ export function createLogbookService({ supabase, assignmentService }) {
       } = input ?? {};
 
       if (
-        idAsignacion === undefined ||
-        idAsignacion === null ||
-        idAsignacion === "" ||
-        !Number.isInteger(Number(idAsignacion)) ||
-        Number(idAsignacion) < 1 ||
+        idPractica === undefined ||
+        idPractica === null ||
+        idPractica === "" ||
+        !Number.isInteger(Number(idPractica)) ||
+        Number(idPractica) < 1 ||
         !isValidDate(fecha) ||
         !Array.isArray(respuestas)
       ) {
-        throw new AppError(400, "La asignación, fecha y respuestas son obligatorias.");
+        throw new AppError(400, "La práctica, fecha y respuestas son obligatorias.");
       }
-      const assignment = await assignmentService.getForActor(Number(idAsignacion), actor);
+      const practice = await practiceService.getForActor(Number(idPractica), actor);
 
       let session;
       if (idSesion !== undefined && idSesion !== null) {
         const { data, error } = await supabase
           .from("sesion_bitacora")
-          .select("id_sesion, id_practica, id_programa, estado, fecha_inicio, fecha_fin, visible")
+          .select("id_sesion, id_ciclo, id_programa, semestre, estado, fecha_inicio, fecha_fin, visible")
           .eq("id_sesion", idSesion)
           .maybeSingle();
         throwDatabaseError(error);
@@ -86,10 +89,9 @@ export function createLogbookService({ supabase, assignmentService }) {
           !session ||
           session.estado !== "Abierta" ||
           !session.visible ||
-          (session.id_practica !== null &&
-            session.id_practica !== assignment.id_practica) ||
-          (session.id_programa !== null &&
-            session.id_programa !== assignment.practica?.id_programa) ||
+          Number(session.id_ciclo) !== Number(practice.id_ciclo) ||
+          Number(session.id_programa) !== Number(practice.estudiante?.id_programa) ||
+          Number(session.semestre) !== Number(practice.semestre) ||
           fecha < session.fecha_inicio ||
           fecha > session.fecha_fin
         ) {
@@ -124,6 +126,9 @@ export function createLogbookService({ supabase, assignmentService }) {
       ) {
         throw new AppError(400, "El número de visita debe ser un entero positivo.");
       }
+      
+      // Una bitácora sin sesión no puede recibir respuestas dinámicas; la validación evita datos inconsistentes.
+      
       if (!session && respuestas.length) {
         throw new AppError(400, "Las respuestas dinámicas requieren una sesión de bitácora.");
       }
@@ -173,7 +178,7 @@ export function createLogbookService({ supabase, assignmentService }) {
           url_evidencias: urlEvidencias || null,
           reflexion_pedagogica: reflexionPedagogica || null,
           estado: "Pendiente",
-          id_asignacion: Number(idAsignacion),
+          id_practica: Number(idPractica),
           id_sesion: session?.id_sesion ?? null,
           numero_visita:
             numeroVisita !== undefined && numeroVisita !== null && numeroVisita !== ""
@@ -206,6 +211,13 @@ export function createLogbookService({ supabase, assignmentService }) {
           throwDatabaseError(answerError);
         }
       }
+      if (notifications) {
+        await notifications.notifyUser(practice.id_tutor, {
+          title: "Nueva bitácora",
+          body: "Un estudiante envió una bitácora para revisión.",
+          url: "/revision",
+        });
+      }
       return logbook;
     },
 
@@ -215,23 +227,23 @@ export function createLogbookService({ supabase, assignmentService }) {
 
       const { data: logbook, error: logbookError } = await supabase
         .from("bitacora")
-        .select("id_bitacora, id_asignacion")
+        .select("id_bitacora, id_practica")
         .eq("id_bitacora", logbookId)
         .maybeSingle();
       throwDatabaseError(logbookError);
       if (!logbook) throw new AppError(404, "No se encontró la bitácora.");
-      const assignment = await assignmentService.getForActor(logbook.id_asignacion, actor);
+      const practice = await practiceService.getForActor(logbook.id_practica, actor);
       if (
         evaluatorRole === "asesor" &&
         actor.role !== "director" &&
-        assignment.id_asesor !== actor.id_usuario
+        practice.id_asesor !== actor.id_usuario
       ) {
         throw new AppError(403, "Solo puedes evaluar estudiantes asignados a ti.");
       }
       if (
         evaluatorRole === "tutor" &&
         actor.role !== "director" &&
-        assignment.id_tutor !== actor.id_usuario
+        practice.id_tutor !== actor.id_usuario
       ) {
         throw new AppError(403, "Solo puedes evaluar estudiantes asignados a ti.");
       }
@@ -279,17 +291,17 @@ export function createLogbookService({ supabase, assignmentService }) {
 
       const { data: logbook, error } = await supabase
         .from("bitacora")
-        .select("id_asignacion")
+        .select("id_practica")
         .eq("id_bitacora", logbookId)
         .maybeSingle();
       throwDatabaseError(error);
       if (!logbook) throw new AppError(404, "No se encontró la bitácora.");
-      const assignment = await assignmentService.getForActor(logbook.id_asignacion, actor);
+      const practice = await practiceService.getForActor(logbook.id_practica, actor);
       if (
         actor.role === "tutor" &&
-        assignment.id_tutor !== actor.id_usuario
+        practice.id_tutor !== actor.id_usuario
       ) {
-        throw new AppError(403, "Solo puedes revisar bitácoras de estudiantes asignados a ti.");
+        throw new AppError(403, "Solo puedes revisar bitácoras de tus estudiantes.");
       }
 
       const { data, error: reviewError } = await supabase.rpc("review_logbook", {
@@ -299,6 +311,15 @@ export function createLogbookService({ supabase, assignmentService }) {
         p_revisado_por: actor.id_usuario,
       });
       throwDatabaseError(reviewError);
+      if (notifications) {
+        await notifications.notifyUser(practice.id_estudiante, {
+          title: "Bitácora revisada",
+          body: estado === "Aprobada"
+            ? "Tu tutor aprobó una bitácora."
+            : "Tu tutor solicitó correcciones en una bitácora.",
+          url: "/bitacora",
+        });
+      }
       return data;
     },
   };

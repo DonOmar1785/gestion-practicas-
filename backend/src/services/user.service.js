@@ -1,3 +1,5 @@
+// Gestiona usuarios y perfiles con validación, sincronización con Firebase y limpieza de datos.
+
 import { AppError } from "../utils/app-error.js";
 import { USER_ROLE_MODELS } from "../models/user-role.model.js";
 
@@ -5,6 +7,7 @@ function throwDatabaseError(error) {
   if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
+// Crea y actualiza usuarios, manteniendo coherencia entre Firebase y Supabase.
 export function createUserService({ supabase, firebaseAuth }) {
   return {
     async findActiveByFirebaseUid(uid) {
@@ -24,7 +27,7 @@ export function createUserService({ supabase, firebaseAuth }) {
     async list() {
       const { data, error } = await supabase
         .from("usuario")
-        .select("id_usuario, nombre_completo, rol, correo, estado, estudiante(id_programa, semestre)")
+        .select("id_usuario, nombre_completo, cedula, rol, correo, estado, estudiante(id_programa, semestre)")
         .order("nombre_completo");
 
       throwDatabaseError(error);
@@ -36,7 +39,7 @@ export function createUserService({ supabase, firebaseAuth }) {
     },
 
     async create(input) {
-      const { correo, password, nombreCompleto, rol, idPrograma, semestre } = input ?? {};
+      const { correo, password, nombreCompleto, cedula, rol, idPrograma, semestre } = input ?? {};
       if (
         typeof correo !== "string" ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim()) ||
@@ -52,11 +55,14 @@ export function createUserService({ supabase, firebaseAuth }) {
         );
       }
       if (rol === "estudiante") {
+        if (typeof cedula !== "string" || !/^\d{6,20}$/.test(cedula.trim())) {
+          throw new AppError(400, "Indica una cédula de estudiante válida (entre 6 y 20 dígitos).");
+        }
         if (!Number.isInteger(Number(idPrograma)) || Number(idPrograma) < 1) {
           throw new AppError(400, "El estudiante debe tener un programa académico.");
         }
-        if (!Number.isInteger(Number(semestre)) || Number(semestre) < 1 || Number(semestre) > 8) {
-          throw new AppError(400, "Selecciona un semestre válido entre 1 y 8.");
+        if (!Number.isInteger(Number(semestre)) || Number(semestre) < 1 || Number(semestre) > 12) {
+          throw new AppError(400, "Selecciona un semestre válido entre 1 y 12.");
         }
       }
 
@@ -82,16 +88,20 @@ export function createUserService({ supabase, firebaseAuth }) {
           .insert({
             uid_firebase: firebaseUser.uid,
             nombre_completo: nombreCompleto.trim(),
+            cedula: rol === "estudiante" ? cedula.trim() : null,
             rol,
             correo: correo.trim().toLowerCase(),
             estado: "Activo",
           })
-          .select("id_usuario, nombre_completo, rol, correo, estado")
+          .select("id_usuario, nombre_completo, cedula, rol, correo, estado")
           .single();
 
         throwDatabaseError(profileError);
         profileId = profile.id_usuario;
 
+        
+        // La relación entre usuario y perfil hijo depende del rol para mantener integridad referencial.
+        
         const roleModel = USER_ROLE_MODELS[rol];
         const childProfile = { [roleModel.foreignKey]: profile.id_usuario };
         if (rol === "estudiante") {
@@ -130,7 +140,7 @@ export function createUserService({ supabase, firebaseAuth }) {
       }
       const { data: current, error: lookupError } = await supabase
         .from("usuario")
-        .select("id_usuario, uid_firebase, nombre_completo, correo, rol, estado, estudiante(id_estudiante)")
+        .select("id_usuario, uid_firebase, nombre_completo, cedula, correo, rol, estado, estudiante(id_estudiante)")
         .eq("id_usuario", id)
         .maybeSingle();
       throwDatabaseError(lookupError);
@@ -151,17 +161,28 @@ export function createUserService({ supabase, firebaseAuth }) {
         const correo = input.correo.trim().toLowerCase();
         if (correo !== current.correo.toLowerCase()) body.correo = correo;
       }
+      if (input?.cedula !== undefined) {
+        if (
+          !current.estudiante ||
+          typeof input.cedula !== "string" ||
+          !/^\d{6,20}$/.test(input.cedula.trim())
+        ) {
+          throw new AppError(400, "Indica una cédula de estudiante válida (entre 6 y 20 dígitos).");
+        }
+        const cedula = input.cedula.trim();
+        if (cedula !== current.cedula) body.cedula = cedula;
+      }
       const changesSemester = input?.semestre !== undefined;
       if (changesSemester) {
         if (!current.estudiante) {
           throw new AppError(400, "El semestre solo se puede asignar a un estudiante.");
         }
-        if (!Number.isInteger(Number(input.semestre)) || Number(input.semestre) < 1 || Number(input.semestre) > 8) {
-          throw new AppError(400, "Selecciona un semestre válido entre 1 y 8.");
+        if (!Number.isInteger(Number(input.semestre)) || Number(input.semestre) < 1 || Number(input.semestre) > 12) {
+          throw new AppError(400, "Selecciona un semestre válido entre 1 y 12.");
         }
       }
       if (!Object.keys(body).length && !changesSemester) {
-        throw new AppError(400, "Indica el nombre, correo o semestre que deseas modificar.");
+        throw new AppError(400, "Indica el nombre, cédula, correo o semestre que deseas modificar.");
       }
 
       const firebaseUpdates = {};
@@ -187,6 +208,7 @@ export function createUserService({ supabase, firebaseAuth }) {
       let data = {
         id_usuario: current.id_usuario,
         nombre_completo: body.nombre_completo ?? current.nombre_completo,
+        cedula: body.cedula ?? current.cedula,
         correo: body.correo ?? current.correo,
         rol: current.rol,
         estado: current.estado,
@@ -197,12 +219,13 @@ export function createUserService({ supabase, firebaseAuth }) {
           .from("usuario")
           .update(body)
           .eq("id_usuario", id)
-          .select("id_usuario, nombre_completo, rol, correo, estado")
+          .select("id_usuario, nombre_completo, cedula, rol, correo, estado")
           .single());
       } else {
         data = {
           id_usuario: current.id_usuario,
           nombre_completo: current.nombre_completo,
+          cedula: current.cedula,
           rol: current.rol,
           correo: current.correo,
           estado: current.estado,
@@ -223,7 +246,7 @@ export function createUserService({ supabase, firebaseAuth }) {
           }
         }
         if (error.code === "23505") {
-          throw new AppError(409, "Ya existe un usuario con ese correo.");
+          throw new AppError(409, "Ya existe un usuario con ese correo o cédula.");
         }
         throwDatabaseError(error);
       }
@@ -308,7 +331,7 @@ export function createUserService({ supabase, firebaseAuth }) {
         if (error.code === "23503") {
           throw new AppError(
             409,
-            "No se puede eliminar porque el usuario tiene asignaciones, bitácoras u otros datos relacionados.",
+            "No se puede eliminar porque el usuario tiene prácticas, bitácoras u otros datos relacionados.",
           );
         }
         throwDatabaseError(error);

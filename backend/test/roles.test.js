@@ -1,3 +1,5 @@
+// Valida la normalización de roles para que los permisos coincidan con el esquema español.
+
 import assert from "node:assert/strict";
 import test from "node:test";
 import { normalizeRole } from "../src/utils/roles.js";

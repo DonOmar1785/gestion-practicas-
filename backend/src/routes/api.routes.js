@@ -1,3 +1,5 @@
+// Define los endpoints protegidos y la autorización por rol para cada recurso del sistema.
+
 import { Router } from "express";
 import { authorize } from "../middleware/authorize.js";
 import { auditMutations } from "../middleware/audit-mutations.js";
@@ -6,8 +8,12 @@ import { MANAGER_ROLES } from "../utils/roles.js";
 import { createApiController } from "../controllers/api.controller.js";
 import { uploadDocx } from "../middleware/upload-docx.js";
 
-const CATALOGS = ["programs", "cycles", "institutions", "practices"];
 
+// Los catálogos compartidos usan una misma convención de rutas y permisos para simplificar el CRUD.
+
+const CATALOGS = ["programs", "cycles", "institutions"];
+
+// Registra rutas del API, seguridad y suscripciones en tiempo real para cambios de datos.
 export function createApiRouter({ authenticate, services, realtime }) {
   const router = Router();
   const controller = createApiController(services);
@@ -37,10 +43,30 @@ export function createApiRouter({ authenticate, services, realtime }) {
   });
 
   router.get("/me", asyncHandler(controller.me));
+  router.get("/notifications", asyncHandler(controller.listNotifications));
+  router.post("/notifications/tokens", asyncHandler(controller.registerNotificationToken));
+  router.delete("/notifications/tokens", asyncHandler(controller.removeNotificationToken));
   router.get("/users", authorize(...MANAGER_ROLES), asyncHandler(controller.listUsers));
   router.post("/users", authorize(...MANAGER_ROLES), asyncHandler(controller.createUser));
   router.put("/users/:id", authorize(...MANAGER_ROLES), asyncHandler(controller.updateUser));
   router.delete("/users/:id", authorize("director"), asyncHandler(controller.deleteUser));
+
+  router.get("/practices", asyncHandler(controller.listPractices));
+  router.post(
+    "/practices/batch",
+    authorize(...MANAGER_ROLES),
+    asyncHandler(controller.createPracticeBatch),
+  );
+  router.put(
+    "/practices/:id",
+    authorize(...MANAGER_ROLES),
+    asyncHandler((req, res) => controller.updateResource("practices", req, res)),
+  );
+  router.delete(
+    "/practices/:id",
+    authorize("director"),
+    asyncHandler((req, res) => controller.deleteResource("practices", req, res)),
+  );
 
   for (const resource of CATALOGS) {
     router.get(
@@ -67,18 +93,16 @@ export function createApiRouter({ authenticate, services, realtime }) {
     }
   }
 
-  router.get("/assignments", asyncHandler(controller.listAssignments));
-  router.post(
-    "/assignments",
-    authorize(...MANAGER_ROLES),
-    asyncHandler(controller.createAssignment),
-  );
-
   router.get("/sessions", asyncHandler(controller.listSessions));
   router.post(
     "/sessions",
     authorize(...MANAGER_ROLES),
     asyncHandler(controller.createSession),
+  );
+  router.post(
+    "/sessions/:id/duplicate",
+    authorize(...MANAGER_ROLES),
+    asyncHandler(controller.duplicateSession),
   );
   router.patch(
     "/sessions/:id/state",

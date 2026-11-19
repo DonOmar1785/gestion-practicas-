@@ -1,7 +1,10 @@
+// Cubren validaciones y regresiones de servicios clave, sobre todo importación y usuarios.
+
 import assert from "node:assert/strict";
 import test from "node:test";
 import { TextReader, Uint8ArrayWriter, ZipWriter } from "@zip.js/zip.js";
 import { createCatalogService } from "../src/services/catalog.service.js";
+import { createPracticeService } from "../src/services/practice.service.js";
 import { createUserService } from "../src/services/user.service.js";
 import { importDocxQuestions } from "../src/services/question-import.service.js";
 
@@ -10,94 +13,6 @@ test("user creation rejects invalid roles before calling Firebase or Supabase", 
     supabase: {},
     firebaseAuth: {},
   });
-
-  test("student creation requires a valid semester", async () => {
-    let firebaseCalled = false;
-    const service = createUserService({
-      supabase: {},
-      firebaseAuth: {
-        async createUser() {
-          firebaseCalled = true;
-        },
-      },
-    });
-
-    await assert.rejects(service.create({
-      correo: "estudiante@example.test",
-      password: "password123",
-      nombreCompleto: "Estudiante",
-      rol: "estudiante",
-      idPrograma: 1,
-      semestre: 9,
-    }), { status: 400, message: "Selecciona un semestre válido entre 1 y 8." });
-    assert.equal(firebaseCalled, false);
-  });
-
-  test("student creation persists the selected semester in the student profile", async () => {
-    const inserts = [];
-    const service = createUserService({
-      supabase: {
-        from(table) {
-          const query = {
-            insert(value) {
-              inserts.push({ table, value });
-              return this;
-            },
-            select() {
-              return this;
-            },
-            single() {
-              return Promise.resolve({
-                data: {
-                  id_usuario: 50,
-                  nombre_completo: "Estudiante de prueba",
-                  rol: "estudiante",
-                  correo: "estudiante@example.test",
-                  estado: "Activo",
-                },
-                error: null,
-              });
-            },
-            then(resolve, reject) {
-              return Promise.resolve({ error: null }).then(resolve, reject);
-            },
-          };
-          return query;
-        },
-      },
-      firebaseAuth: {
-        async createUser() {
-          return { uid: "firebase-student" };
-        },
-      },
-    });
-
-    await service.create({
-      correo: "estudiante@example.test",
-      password: "password123",
-      nombreCompleto: "Estudiante de prueba",
-      rol: "estudiante",
-      idPrograma: 4,
-      semestre: 5,
-    });
-    assert.deepEqual(inserts, [
-      {
-        table: "usuario",
-        value: {
-          uid_firebase: "firebase-student",
-          nombre_completo: "Estudiante de prueba",
-          rol: "estudiante",
-          correo: "estudiante@example.test",
-          estado: "Activo",
-        },
-      },
-      {
-        table: "estudiante",
-        value: { id_estudiante: 50, id_programa: 4, semestre: 5 },
-      },
-    ]);
-  });
-
   await assert.rejects(
     service.create({
       correo: "user@example.test",
@@ -107,6 +22,97 @@ test("user creation rejects invalid roles before calling Firebase or Supabase", 
     }),
     { status: 400 },
   );
+});
+
+test("student creation requires a valid semester", async () => {
+  let firebaseCalled = false;
+  const service = createUserService({
+    supabase: {},
+    firebaseAuth: {
+      async createUser() {
+        firebaseCalled = true;
+      },
+    },
+  });
+
+  await assert.rejects(service.create({
+    correo: "estudiante@example.test",
+    password: "password123",
+    nombreCompleto: "Estudiante",
+    rol: "estudiante",
+    idPrograma: 1,
+    cedula: "1000000000",
+    semestre: 13,
+  }), { status: 400, message: "Selecciona un semestre válido entre 1 y 12." });
+  assert.equal(firebaseCalled, false);
+});
+
+test("student creation persists the selected semester in the student profile", async () => {
+  const inserts = [];
+  const service = createUserService({
+    supabase: {
+      from(table) {
+        const query = {
+          insert(value) {
+            inserts.push({ table, value });
+            return this;
+          },
+          select() {
+            return this;
+          },
+          single() {
+            return Promise.resolve({
+              data: {
+                id_usuario: 50,
+                nombre_completo: "Estudiante de prueba",
+                cedula: "1012345678",
+                rol: "estudiante",
+                correo: "estudiante@example.test",
+                estado: "Activo",
+              },
+              error: null,
+            });
+          },
+          then(resolve, reject) {
+            return Promise.resolve({ error: null }).then(resolve, reject);
+          },
+        };
+        return query;
+      },
+    },
+    firebaseAuth: {
+      async createUser() {
+        return { uid: "firebase-student" };
+      },
+    },
+  });
+
+  await service.create({
+    correo: "estudiante@example.test",
+    password: "password123",
+    nombreCompleto: "Estudiante de prueba",
+    rol: "estudiante",
+    cedula: "1012345678",
+    idPrograma: 4,
+    semestre: 5,
+  });
+  assert.deepEqual(inserts, [
+    {
+      table: "usuario",
+      value: {
+        uid_firebase: "firebase-student",
+        nombre_completo: "Estudiante de prueba",
+        cedula: "1012345678",
+        rol: "estudiante",
+        correo: "estudiante@example.test",
+        estado: "Activo",
+      },
+    },
+    {
+      table: "estudiante",
+      value: { id_estudiante: 50, id_programa: 4, semestre: 5 },
+    },
+  ]);
 });
 
 test("catalog service ignores unapproved fields when inserting", async () => {
@@ -135,6 +141,162 @@ test("catalog service ignores unapproved fields when inserting", async () => {
   });
   assert.deepEqual(inserted, { nombre_programa: "Educación Infantil" });
   assert.equal(result.nombre_programa, "Educación Infantil");
+});
+
+test("catalog service creates practices only through the group workflow", async () => {
+  const service = createCatalogService({});
+  await assert.rejects(
+    service.create("practices", { horas_requeridas: 120 }),
+    { status: 405 },
+  );
+});
+
+test("catalog service does not allow editing practice relationships", async () => {
+  const service = createCatalogService({});
+  await assert.rejects(
+    service.update("practices", 9, { id_estudiante: 42, id_ciclo: 3 }),
+    { status: 400, message: "No hay campos válidos para actualizar." },
+  );
+});
+
+test("catalog service rejects practice edits that end before their start date", async () => {
+  let updateCalled = false;
+  const query = {
+    select() {
+      return this;
+    },
+    eq() {
+      return this;
+    },
+    maybeSingle() {
+      return Promise.resolve({ data: { fecha_inicio: "2026-09-10" }, error: null });
+    },
+    update() {
+      updateCalled = true;
+      return this;
+    },
+  };
+  const service = createCatalogService({ from: () => query });
+
+  await assert.rejects(
+    service.update("practices", 9, { fecha_fin: "2026-09-09" }),
+    { status: 400, message: "La fecha final no puede ser anterior a la inicial." },
+  );
+  assert.equal(updateCalled, false);
+});
+
+test("practice batch creates one validated practice per selected student", async () => {
+  let inserted;
+  const supabase = {
+    from(table) {
+      const query = {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        in() {
+          return this;
+        },
+        maybeSingle() {
+          return Promise.resolve({
+            data: table === "ciclo_practica" ? { id_ciclo: 3, estado_ciclo: "Abierto" } : null,
+            error: null,
+          });
+        },
+        insert(rows) {
+          inserted = rows;
+          return this;
+        },
+        then(resolve, reject) {
+          const data = table === "estudiante"
+            ? [{ id_estudiante: 18, id_programa: 4, semestre: 6, usuario: { estado: "Activo" } }]
+            : inserted;
+          return Promise.resolve({ data, error: null }).then(resolve, reject);
+        },
+      };
+      return query;
+    },
+  };
+  const service = createPracticeService(supabase);
+  const result = await service.createBatch({
+    id_ciclo: 3,
+    id_programa: 4,
+    semestre: 6,
+    tipo_practica: "Pedagógica",
+    fecha_inicio: "2026-08-03",
+    fecha_fin: "2026-11-27",
+    horas_requeridas: 120.5,
+    estudiantes: [{
+      id_estudiante: 18,
+      id_institucion: 2,
+      id_tutor: 5,
+      id_asesor: 7,
+      modalidad: "Virtual",
+    }],
+  });
+
+  assert.equal(result.length, 1);
+  assert.equal(inserted[0].id_estudiante, 18);
+  assert.equal(inserted[0].id_ciclo, 3);
+  assert.equal(inserted[0].horas_requeridas, 120.5);
+  assert.equal(inserted[0].estado_arl, "No aplica");
+});
+
+test("practice batch rejects mismatched groups before inserting", async () => {
+  let insertCalled = false;
+  const supabase = {
+    from(table) {
+      const query = {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        in() {
+          return this;
+        },
+        maybeSingle() {
+          return Promise.resolve({
+            data: table === "ciclo_practica" ? { id_ciclo: 3, estado_ciclo: "Abierto" } : null,
+            error: null,
+          });
+        },
+        insert() {
+          insertCalled = true;
+          return this;
+        },
+        then(resolve, reject) {
+          return Promise.resolve({
+            data: [{ id_estudiante: 18, id_programa: 9, semestre: 6, usuario: { estado: "Activo" } }],
+            error: null,
+          }).then(resolve, reject);
+        },
+      };
+      return query;
+    },
+  };
+  const service = createPracticeService(supabase);
+
+  await assert.rejects(service.createBatch({
+    id_ciclo: 3,
+    id_programa: 4,
+    semestre: 6,
+    tipo_practica: "Pedagógica",
+    fecha_inicio: "2026-08-03",
+    fecha_fin: "2026-11-27",
+    horas_requeridas: 120,
+    estudiantes: [{
+      id_estudiante: 18,
+      id_institucion: 2,
+      id_tutor: 5,
+      id_asesor: 7,
+      modalidad: "Virtual",
+    }],
+  }), { status: 409 });
+  assert.equal(insertCalled, false);
 });
 
 test("catalog deletion reports a conflict when related rows prevent deletion", async () => {
@@ -194,7 +356,7 @@ test("user deletion preserves Firebase access if Supabase rejects related data",
 
   await assert.rejects(service.remove(22, { id_usuario: 17 }), {
     status: 409,
-    message: "No se puede eliminar porque el usuario tiene asignaciones, bitácoras u otros datos relacionados.",
+    message: "No se puede eliminar porque el usuario tiene prácticas, bitácoras u otros datos relacionados.",
   });
   assert.deepEqual(firebaseUpdates, [
     { uid: "firebase-22", changes: { disabled: true } },

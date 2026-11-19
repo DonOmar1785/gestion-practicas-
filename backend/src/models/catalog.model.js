@@ -1,3 +1,5 @@
+// Mapea cada catálogo a su tabla y campos permitidos para crear y actualizar registros.
+
 export const CATALOG_MODELS = Object.freeze({
   programs: Object.freeze({
     table: "programa_academico",
@@ -24,16 +26,9 @@ export const CATALOG_MODELS = Object.freeze({
     table: "practica",
     id: "id_practica",
     fields: [
-      "fecha_inicio",
       "fecha_fin",
-      "horas_requeridas",
-      "estado_horas",
       "estado_practica",
       "estado_seg",
-      "id_programa",
-      "id_ciclo",
-      "semestre",
-      "tipo_practica",
     ],
   }),
 });

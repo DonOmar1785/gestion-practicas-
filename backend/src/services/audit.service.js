@@ -1,3 +1,5 @@
+// Guarda eventos de auditoría con usuario, entidad y detalle de la operación ejecutada.
+
 import { AppError } from "../utils/app-error.js";
 
 function throwDatabaseError(error) {
@@ -8,11 +10,13 @@ export function createAuditService(supabase) {
   return {
     async record(req, responseBody) {
       const data = responseBody?.data;
+      
+      // El ID de entidad se resuelve desde la ruta o desde el payload para auditar correctamente.
+      
       const entityId =
         req.params.id ??
         data?.id_usuario ??
         data?.id_sesion ??
-        data?.id_asignacion ??
         data?.id_bitacora ??
         data?.id_documento ??
         data?.id_plantilla ??
