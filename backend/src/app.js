@@ -1,7 +1,5 @@
 // Construye la API Express con autenticación, servicios y archivos estáticos del frontend.
 
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
@@ -21,9 +19,6 @@ import { createTemplateService } from "./services/template.service.js";
 import { createUserService } from "./services/user.service.js";
 import { AppError } from "./utils/app-error.js";
 import { createRealtimeHub } from "./utils/realtime.js";
-
-const projectRoot = fileURLToPath(new URL("../../", import.meta.url));
-const staticRoot = path.join(projectRoot, "frontend", "dist");
 
 // Construye la aplicación con rutas, seguridad y servicios compartidos.
 export function createApp({
@@ -88,6 +83,10 @@ export function createApp({
   );
   app.use(express.json({ limit: "1mb" }));
 
+  app.get("/", (_req, res) => {
+    res.json({ service: "gestion-practicas-api", health: "/api/health" });
+  });
+
   app.get(
     "/api/health",
     async (req, res, next) => {
@@ -110,12 +109,6 @@ export function createApp({
     }),
   );
   app.use("/api", (_req, _res, next) => next(new AppError(404, "Ruta de API no encontrada.")));
-  app.use(express.static(staticRoot));
-  app.get(/.*/, (_req, res, next) => {
-    res.sendFile(path.join(staticRoot, "index.html"), (error) => {
-      if (error) next(new AppError(503, "El frontend no está compilado. Ejecuta npm run build en frontend."));
-    });
-  });
   app.use(errorHandler);
 
   return app;

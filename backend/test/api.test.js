@@ -58,6 +58,15 @@ function url(path) {
   return `http://127.0.0.1:${server.address().port}${path}`;
 }
 
+test("root identifies the backend as an API deployment", async () => {
+  const response = await fetch(url("/"));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    service: "gestion-practicas-api",
+    health: "/api/health",
+  });
+});
+
 test("health check verifies the Supabase connection", async () => {
   const health = await fetch(url("/api/health"));
   assert.equal(health.status, 200);

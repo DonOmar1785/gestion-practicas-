@@ -116,19 +116,51 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-La interfaz de desarrollo queda en `http://localhost:5173`. Para servirla junto
-con la API en producción:
+La interfaz de demostración queda en `http://localhost:5173`. Para trabajar con
+el backend real en local, inicia también la API desde otra terminal en la raíz:
 
 ```powershell
-Set-Location .\frontend
-npm.cmd run build
-Set-Location ..
-npm.cmd start
+npm.cmd run dev
 ```
 
-La API y el build se sirven desde el mismo origen, normalmente
-`http://localhost:3000`. El modo demostración usa cuentas `@demo.com` con clave
-`demo1234` y no envía notificaciones push.
+La API local queda en `http://localhost:3000`; el proxy de Vite reenvía `/api`
+al backend. El modo demostración usa cuentas `@demo.com` con clave `demo1234`
+y no accede a Supabase ni envía notificaciones push.
+
+## Despliegue en Render: dos unidades
+
+El repositorio se despliega como dos servicios independientes. Supabase y
+Firebase siguen siendo servicios externos.
+
+### Backend API (Web Service)
+
+- **Root Directory:** raíz del repositorio.
+- **Build Command:** `npm ci`
+- **Start Command:** `npm start`
+- Configura `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FIREBASE_PROJECT_ID`,
+  `FIREBASE_SERVICE_ACCOUNT` y `FRONTEND_ORIGIN` como variables del backend.
+- `FRONTEND_ORIGIN` debe ser el origen público del Static Site, por ejemplo
+  `https://tu-frontend.onrender.com`.
+- La raíz de la API devuelve información del servicio; la comprobación de
+  Supabase está en `/api/health`.
+
+### Frontend (Static Site)
+
+Crea un Static Site conectado al mismo repositorio:
+
+- **Root Directory:** `frontend`
+- **Build Command:** `npm ci && npm run build`
+- **Publish Directory:** `dist`
+- Configura `VITE_USE_MOCK=false`, `VITE_API_URL` con el origen público del
+  backend (por ejemplo `https://tu-api.onrender.com`) y las variables
+  `VITE_FIREBASE_*`. Configura también `VITE_FIREBASE_VAPID_KEY` si se usarán
+  notificaciones web.
+- En **Redirects/Rewrites**, agrega una regla `/*` → `/index.html` con acción
+  **Rewrite** para que funcionen las rutas de React.
+
+Las variables `VITE_*` se incorporan al compilar el Static Site: después de
+cambiarlas, vuelve a desplegar el frontend. Nunca pongas credenciales Admin de
+Firebase ni la clave `service_role` en el Static Site.
 
 ## Verificación
 
