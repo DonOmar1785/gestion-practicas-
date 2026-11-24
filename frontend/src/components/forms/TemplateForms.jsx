@@ -4,6 +4,7 @@ import { api } from "../../services/api.js";
 import { useAction } from "../../hooks/useAction.js";
 import FormStatus from "../FormStatus.jsx";
 import Section from "../Section.jsx";
+import { RecordList, Views } from "../WorkArea.jsx";
 
 // Editor de una plantilla existente.
 function TemplateEditor({ template, onSaved }) {
@@ -19,7 +20,7 @@ function TemplateEditor({ template, onSaved }) {
   };
 
   return (
-    <Section title={`Editar plantilla ${template.id_plantilla}`}>
+    <>
       <form className="form-grid" onSubmit={handleSubmit}>
         <textarea
           required
@@ -32,7 +33,7 @@ function TemplateEditor({ template, onSaved }) {
         </button>
       </form>
       <FormStatus error={error} />
-    </Section>
+    </>
   );
 }
 
@@ -56,8 +57,13 @@ export default function TemplateForms({ templates = [], onSaved }) {
   };
 
   return (
-    <>
-      <Section title="Guardar plantilla de retroalimentación">
+    <Views choices={[
+      { id: "saved", title: "Plantillas guardadas", content: <RecordList empty="Aún no hay plantillas de retroalimentación." records={templates.map((template) => ({
+        id: template.id_plantilla,
+        title: (template.contenido || "").slice(0, 100) || "Plantilla",
+        content: <TemplateEditor template={template} onSaved={onSaved} />,
+      }))} /> },
+      { id: "new", title: "Nueva plantilla", content: <Section title="Crear plantilla de retroalimentación">
         <form className="form-grid" onSubmit={handleSubmit}>
           <textarea
             required
@@ -70,11 +76,8 @@ export default function TemplateForms({ templates = [], onSaved }) {
           </button>
         </form>
         <FormStatus error={error} />
-      </Section>
-      {templates.map((template) => (
-        <TemplateEditor key={template.id_plantilla} template={template} onSaved={onSaved} />
-      ))}
-    </>
+      </Section> },
+    ]} />
   );
 }
 

@@ -35,7 +35,7 @@ describe("homeForRole", () => {
 
 describe("getMenu", () => {
   it("muestra el semestre al estudiante", () => {
-    expect(getMenu("estudiante", 3)[0][0]).toBe("Panel · Semestre 3");
+    expect(getMenu("estudiante", 3)[0][0]).toBe("Inicio · Semestre 3");
   });
 
   it("devuelve lista vacía para un rol desconocido", () => {

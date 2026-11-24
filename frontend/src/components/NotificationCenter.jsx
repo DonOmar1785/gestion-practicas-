@@ -75,34 +75,33 @@ export default function NotificationCenter() {
     }
   };
 
+  if (USE_MOCK) return null;
+
   return (
-    <section className="notification-center" aria-label="Notificaciones">
-      <div className="notification-actions">
-        <button type="button" className="btn-mini" onClick={refresh} disabled={loading}>
-          Avisos {notifications.length ? `(${notifications.length})` : ""}
-        </button>
-        {!USE_MOCK && permission !== "granted" && (
-          <button type="button" className="btn-mini" onClick={enable}>Activar avisos</button>
+    <details className="notice-menu" onToggle={(event) => { if (event.currentTarget.open) void refresh(); }}>
+      <summary>Avisos{notifications.length > 0 && ` (${notifications.length})`}</summary>
+      <section className="notification-center" aria-label="Notificaciones">
+        <div className="notification-actions">
+          <button type="button" className="btn-mini" onClick={refresh} disabled={loading}>{loading ? "Cargando…" : "Actualizar"}</button>
+          {permission !== "granted" && <button type="button" className="btn-mini" onClick={enable}>Activar avisos</button>}
+          {permission === "granted" && <button type="button" className="btn-mini" onClick={disable}>Desactivar avisos</button>}
+        </div>
+        {message && <p className="notification-message" role="status">{message}</p>}
+        {error && <p className="notification-error" role="alert">{error}</p>}
+        {!notifications.length && !loading && !error && <p className="ayuda">No tienes avisos recientes.</p>}
+        {notifications.length > 0 && (
+          <ul className="notification-list">
+            {notifications.slice(0, 5).map((notification) => (
+              <li key={notification.id}>
+                <a href={notification.url || "/"}>
+                  <strong>{notification.title}</strong>
+                  <span>{notification.body}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
-        {!USE_MOCK && permission === "granted" && (
-          <button type="button" className="btn-mini" onClick={disable}>Desactivar avisos</button>
-        )}
-      </div>
-      {message && <p className="notification-message" role="status">{message}</p>}
-      {error && <p className="notification-error" role="alert">{error}</p>}
-      {notifications.length > 0 && (
-        <ul className="notification-list">
-          {notifications.slice(0, 5).map((notification) => (
-            <li key={notification.id}>
-              <a href={notification.url || "/"}>
-                <strong>{notification.title}</strong>
-                <span>{notification.body}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-      {USE_MOCK && <small>La lista de avisos push requiere conectar Firebase.</small>}
-    </section>
+      </section>
+    </details>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { api } from "../../services/api.js";
 import { useForm } from "../../hooks/useForm.js";
@@ -18,7 +18,7 @@ const PRACTICE_INITIAL = {
   horas_requeridas: "200",
 };
 
-function CycleForm({ actorId, onSaved }) {
+export function CycleForm({ actorId, onSaved }) {
   const { values, handleChange, reset } = useForm(CYCLE_INITIAL);
   const { run, pending, error } = useAction();
 
@@ -31,13 +31,14 @@ function CycleForm({ actorId, onSaved }) {
         id_director: actorId,
       });
       reset();
-      onSaved();
+      onSaved("Ciclo creado.");
     });
   };
 
   return (
     <Section title="Ciclos académicos">
       <form className="form-grid" onSubmit={handleSubmit}>
+        <label>Nombre del ciclo
         <input
           name="nombre_periodo"
           required
@@ -46,10 +47,13 @@ function CycleForm({ actorId, onSaved }) {
           value={values.nombre_periodo}
           onChange={handleChange}
         />
+        </label>
+        <label>Estado
         <select name="estado_ciclo" value={values.estado_ciclo} onChange={handleChange}>
           <option value="Abierto">Abierto</option>
           <option value="Cerrado">Cerrado</option>
         </select>
+        </label>
         <button className="btn-form" disabled={pending}>Crear ciclo</button>
       </form>
       <FormStatus error={error} />
@@ -62,12 +66,19 @@ CycleForm.propTypes = {
   onSaved: PropTypes.func.isRequired,
 };
 
-function PracticeForm({ data, onSaved }) {
+export function PracticeForm({ data, onSaved }) {
   const { values, handleChange, reset } = useForm(PRACTICE_INITIAL);
   const [selectedIds, setSelectedIds] = useState([]);
   const [placements, setPlacements] = useState({});
   const [studentSearch, setStudentSearch] = useState("");
-  const { run, pending, error, setError } = useAction();
+  const { run, pending, error, setError, clearError } = useAction();
+  const [step, setStep] = useState(1);
+  const [shared, setShared] = useState({});
+  const heading = useRef(null);
+
+  useEffect(() => {
+    if (step > 1) heading.current?.focus();
+  }, [step]);
 
   const students = useMemo(() => {
     const alreadyPracticing = new Set(
@@ -108,6 +119,7 @@ function PracticeForm({ data, onSaved }) {
     if (["id_ciclo", "id_programa", "semestre"].includes(event.target.name)) {
       setSelectedIds([]);
       setPlacements({});
+      setStudentSearch("");
     }
   };
 
@@ -120,11 +132,7 @@ function PracticeForm({ data, onSaved }) {
   const setPlacement = (studentId, field, value) => {
     setPlacements((current) => ({
       ...current,
-      [studentId]: {
-        ...current[studentId],
-        [field]: value,
-        ...(field === "modalidad" && value === "Virtual" ? { fecha_vencimiento_arl: "" } : {}),
-      },
+      [studentId]: updatePlacement(current[studentId], field, value),
     }));
   };
 
@@ -136,10 +144,29 @@ function PracticeForm({ data, onSaved }) {
       : [...new Set([...current, ...visibleIds])]);
   };
 
+  const applyShared = () => {
+    clearError();
+    if (!placementComplete(shared)) {
+      setError("Elige institución, tutor, asesor, modalidad y, si corresponde, la fecha de ARL.");
+      return;
+    }
+    setPlacements(Object.fromEntries(selectedStudents.map((student) => [student.id_usuario, { ...shared }])));
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!selectedStudents.length) {
-      setError("Selecciona al menos un estudiante de la lista.");
+    clearError();
+    if (step < 3) {
+      if (step === 2 && !selectedStudents.length) {
+        setError("Selecciona al menos un estudiante de la lista.");
+        return;
+      }
+      setStep(step + 1);
+      return;
+    }
+    const incomplete = selectedStudents.find((student) => !placementComplete(placements[student.id_usuario]));
+    if (!selectedStudents.length || incomplete) {
+      setError(incomplete ? `Completa la asignación de ${incomplete.nombre_completo}.` : "Selecciona al menos un estudiante.");
       return;
     }
     run(async () => {
@@ -167,17 +194,20 @@ function PracticeForm({ data, onSaved }) {
       setSelectedIds([]);
       setPlacements({});
       setStudentSearch("");
-      onSaved();
+      setShared({});
+      setStep(1);
+      onSaved(`Asignaciones guardadas: ${selectedStudents.length}.`);
     });
   };
 
   return (
-    <Section title="Crear prácticas para un grupo">
-      <p className="ayuda">
-        Elige el ciclo, programa y semestre. El sistema muestra los estudiantes disponibles; no tienes que escribir sus cédulas.
-      </p>
-      <form onSubmit={handleSubmit}>
-        <div className="form-grid">
+    <Section title="Asignar prácticas a un grupo">
+      <form className="form-grid" onSubmit={handleSubmit}>
+        <ol className="steps">
+          {["Datos del grupo", "Estudiantes", "Asignación"].map((label, index) => <li key={label} aria-current={step === index + 1 ? "step" : undefined}>{label}</li>)}
+        </ol>
+        <h3 ref={heading} tabIndex={-1}>{["Define los datos de la práctica", "Elige los estudiantes del grupo", "Asigna institución y responsables"][step - 1]}</h3>
+        {step === 1 && <div className="field-grid">
           <label>
             Ciclo
             <select name="id_ciclo" required value={values.id_ciclo} onChange={resetSelection}>
@@ -221,18 +251,17 @@ function PracticeForm({ data, onSaved }) {
             Horas requeridas
             <input name="horas_requeridas" type="number" min="0.01" step="0.01" required value={values.horas_requeridas} onChange={handleChange} />
           </label>
-        </div>
+        </div>}
 
-        <div className="student-selection">
+        {step === 2 && <div className="student-selection">
           <div className="student-selection-header">
             <div>
-              <h3>Estudiantes disponibles</h3>
               <p>{students.length} disponibles · {selectedIds.length} seleccionados</p>
             </div>
             <button type="button" className="btn-mini" onClick={selectVisibleStudents} disabled={!students.length}>
               {students.length && students.every((student) => selectedIds.includes(Number(student.id_usuario)))
                 ? "Quitar selección"
-                : "Seleccionar todos"}
+                : "Seleccionar resultados"}
             </button>
           </div>
           <input
@@ -264,90 +293,106 @@ function PracticeForm({ data, onSaved }) {
                 </div>
               )
               : <p className="ayuda">No hay estudiantes disponibles para este grupo.</p>}
-        </div>
+        </div>}
 
-        {selectedStudents.length > 0 && (
-          <div className="student-placement-list">
-            <h3>Completa los datos de cada práctica</h3>
-            <p className="ayuda">La institución, los responsables y la modalidad pueden variar por estudiante.</p>
-            {selectedStudents.map((student) => {
-              const placement = placements[student.id_usuario] || {};
-              return (
-                <fieldset className="student-placement" key={student.id_usuario}>
-                  <legend>{student.nombre_completo} · {student.cedula || "Cédula sin registrar"}</legend>
-                  <div className="form-grid">
-                    <label>
-                      Institución
-                      <select required value={placement.id_institucion || ""} onChange={(event) => setPlacement(student.id_usuario, "id_institucion", event.target.value)}>
-                        <option value="">Selecciona una institución</option>
-                        <OptionList items={institutions} valueKey="id_institucion" labelKey="nombre_institucion" />
-                      </select>
-                    </label>
-                    <label>
-                      Tutor
-                      <select required value={placement.id_tutor || ""} onChange={(event) => setPlacement(student.id_usuario, "id_tutor", event.target.value)}>
-                        <option value="">Selecciona un tutor</option>
-                        <OptionList items={tutors} valueKey="id_usuario" labelKey="nombre_completo" />
-                      </select>
-                    </label>
-                    <label>
-                      Asesor
-                      <select required value={placement.id_asesor || ""} onChange={(event) => setPlacement(student.id_usuario, "id_asesor", event.target.value)}>
-                        <option value="">Selecciona un asesor</option>
-                        <OptionList items={advisors} valueKey="id_usuario" labelKey="nombre_completo" />
-                      </select>
-                    </label>
-                    <label>
-                      Modalidad
-                      <select required value={placement.modalidad || ""} onChange={(event) => setPlacement(student.id_usuario, "modalidad", event.target.value)}>
-                        <option value="">Selecciona modalidad</option>
-                        <option value="Presencial">Presencial</option>
-                        <option value="Virtual">Virtual</option>
-                      </select>
-                    </label>
-                    {placement.modalidad === "Presencial" && (
-                      <label>
-                        Vencimiento ARL
-                        <input
-                          required
-                          type="date"
-                          value={placement.fecha_vencimiento_arl || ""}
-                          onChange={(event) => setPlacement(student.id_usuario, "fecha_vencimiento_arl", event.target.value)}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </fieldset>
-              );
-            })}
-          </div>
+        {step === 3 && (
+          <>
+            <p className="form-context">{selectedStudents.length} estudiantes · Semestre {values.semestre} · {values.horas_requeridas} horas</p>
+            {selectedStudents.length > 1 && (
+              <fieldset className="assignment-group">
+                <legend>Asignación común</legend>
+                <p className="ayuda">Aplica los mismos datos a todos. Después puedes ajustar los casos individuales.</p>
+                <PlacementFields placement={shared} institutions={institutions} tutors={tutors} advisors={advisors} onChange={(field, value) => setShared((current) => updatePlacement(current, field, value))} />
+                <button type="button" className="btn-mini" disabled={pending} onClick={applyShared}>Aplicar a todo el grupo</button>
+              </fieldset>
+            )}
+            <div className="record-list">
+              {selectedStudents.map((student) => {
+                const placement = placements[student.id_usuario] || {};
+                const complete = placementComplete(placement);
+                return (
+                  <details className="record" key={student.id_usuario} open={selectedStudents.length === 1 ? true : undefined}>
+                    <summary>
+                      <span className="record-caption">
+                        <strong>{student.nombre_completo}</strong>
+                        {complete && <small>{institutions.find((institution) => String(institution.id_institucion) === placement.id_institucion)?.nombre_institucion} · {placement.modalidad}</small>}
+                      </span>
+                      <span className="status-pill" data-state={complete ? "Aprobada" : "Pendiente"}>{complete ? "Lista" : "Por completar"}</span>
+                    </summary>
+                    <div className="record-body">
+                      <PlacementFields placement={placement} institutions={institutions} tutors={tutors} advisors={advisors} onChange={(field, value) => setPlacement(student.id_usuario, field, value)} />
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
+          </>
         )}
 
-        <button className="btn-form" disabled={pending || !selectedStudents.length}>
-          Crear {selectedStudents.length || ""} práctica{selectedStudents.length === 1 ? "" : "s"}
-        </button>
+        <FormStatus error={error} />
+        <div className="button-row">
+          {step > 1 && <button type="button" className="btn-mini" disabled={pending} onClick={() => { clearError(); setStep(step - 1); }}>Volver</button>}
+          <button className="btn-form" disabled={pending}>{step < 3 ? "Continuar" : pending ? "Asignando…" : `Confirmar ${selectedStudents.length} asignaciones`}</button>
+        </div>
       </form>
-      <FormStatus error={error} />
     </Section>
   );
 }
+
+function placementComplete(placement = {}) {
+  return placement.id_institucion && placement.id_tutor && placement.id_asesor &&
+    (placement.modalidad === "Virtual" || (placement.modalidad === "Presencial" && placement.fecha_vencimiento_arl));
+}
+
+function updatePlacement(current, field, value) {
+  return {
+    ...current,
+    [field]: value,
+    ...(field === "modalidad" && value === "Virtual" ? { fecha_vencimiento_arl: "" } : {}),
+  };
+}
+
+function PlacementFields({ placement, institutions, tutors, advisors, onChange }) {
+  return (
+    <div className="field-grid">
+      {[
+        ["id_institucion", "Institución", institutions, "id_institucion", "nombre_institucion"],
+        ["id_tutor", "Tutor", tutors, "id_usuario", "nombre_completo"],
+        ["id_asesor", "Asesor", advisors, "id_usuario", "nombre_completo"],
+      ].map(([field, label, items, valueKey, labelKey]) => (
+        <label key={field}>{label}
+          <select value={placement[field] || ""} onChange={(event) => onChange(field, event.target.value)}>
+            <option value="">Selecciona</option>
+            <OptionList items={items} valueKey={valueKey} labelKey={labelKey} />
+          </select>
+        </label>
+      ))}
+      <label>Modalidad
+        <select value={placement.modalidad || ""} onChange={(event) => onChange("modalidad", event.target.value)}>
+          <option value="">Selecciona</option>
+          <option value="Presencial">Presencial</option>
+          <option value="Virtual">Virtual</option>
+        </select>
+      </label>
+      {placement.modalidad === "Presencial" && (
+        <label>Vencimiento de ARL
+          <input type="date" value={placement.fecha_vencimiento_arl || ""} onChange={(event) => onChange("fecha_vencimiento_arl", event.target.value)} />
+        </label>
+      )}
+    </div>
+  );
+}
+
+PlacementFields.propTypes = {
+  placement: PropTypes.object.isRequired,
+  institutions: PropTypes.array.isRequired,
+  tutors: PropTypes.array.isRequired,
+  advisors: PropTypes.array.isRequired,
+  onChange: PropTypes.func.isRequired,
+};
 
 PracticeForm.propTypes = {
   data: PropTypes.object.isRequired,
   onSaved: PropTypes.func.isRequired,
 };
 
-export default function PracticeForms({ data, actorId, onSaved }) {
-  return (
-    <>
-      <CycleForm actorId={actorId} onSaved={onSaved} />
-      <PracticeForm data={data} onSaved={onSaved} />
-    </>
-  );
-}
-
-PracticeForms.propTypes = {
-  data: PropTypes.object.isRequired,
-  actorId: PropTypes.number.isRequired,
-  onSaved: PropTypes.func.isRequired,
-};

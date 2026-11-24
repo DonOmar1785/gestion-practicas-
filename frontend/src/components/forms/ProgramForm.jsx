@@ -22,9 +22,15 @@ export default function ProgramForm({ onSaved }) {
 
   return (
     <Section title="Crear programa">
-      <form className="form-grid" onSubmit={handleSubmit}>
-        <input name="nombre_programa" required minLength={5} placeholder="Nombre del programa" value={values.nombre_programa} onChange={handleChange} />
-        <input name="facultad" placeholder="Facultad" value={values.facultad} onChange={handleChange} />
+      <form className="form-grid narrow-form" onSubmit={handleSubmit}>
+        <label>
+          Nombre del programa
+          <input name="nombre_programa" required minLength={5} placeholder="Nombre del programa" value={values.nombre_programa} onChange={handleChange} />
+        </label>
+        <label>
+          Facultad (opcional)
+          <input name="facultad" placeholder="Facultad" value={values.facultad} onChange={handleChange} />
+        </label>
         <button className="btn-form" disabled={pending}>
           Guardar programa
         </button>

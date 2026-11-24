@@ -32,40 +32,61 @@ export default function UserForm({ programs, onSaved }) {
 
   return (
     <Section title="Crear usuario">
-      <form className="form-grid" onSubmit={handleSubmit}>
-        <input name="nombreCompleto" required minLength={3} placeholder="Nombre completo" value={values.nombreCompleto} onChange={handleChange} />
-        <input name="correo" type="email" required placeholder="Correo" value={values.correo} onChange={handleChange} />
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          placeholder="Contraseña inicial (mín. 8 caracteres)"
-          value={values.password}
-          onChange={handleChange}
-        />
-        <select name="rol" required value={values.rol} onChange={handleChange}>
-          <option value="">Rol</option>
-          <option value="estudiante">Estudiante</option>
-          <option value="tutor">Tutor</option>
-          <option value="asesor">Asesor</option>
-        </select>
+      <form className="form-grid narrow-form" onSubmit={handleSubmit}>
+        <label>
+          Nombre completo
+          <input name="nombreCompleto" required minLength={3} placeholder="Nombre completo" value={values.nombreCompleto} onChange={handleChange} />
+        </label>
+        <label>
+          Correo electrónico
+          <input name="correo" type="email" required placeholder="Correo" value={values.correo} onChange={handleChange} />
+        </label>
+        <label>
+          Contraseña inicial
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            placeholder="Contraseña inicial (mín. 8 caracteres)"
+            value={values.password}
+            onChange={handleChange}
+          />
+        </label>
+        <label>
+          Rol que tendrá la cuenta
+          <select name="rol" required value={values.rol} onChange={handleChange}>
+            <option value="">Rol</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="tutor">Tutor</option>
+            <option value="asesor">Asesor</option>
+          </select>
+        </label>
         {isStudent && (
           <>
-            <input name="cedula" required inputMode="numeric" pattern="[0-9]{6,20}" placeholder="Cédula (solo números)" value={values.cedula} onChange={handleChange} />
-            <select name="idPrograma" required value={values.idPrograma} onChange={handleChange}>
-              <option value="">Programa del estudiante</option>
-              <OptionList items={programs} valueKey="id_programa" labelKey="nombre_programa" />
-            </select>
-            <select name="semestre" required value={values.semestre} onChange={handleChange}>
-              <option value="">Semestre del estudiante</option>
-              {SEMESTERS.map((semester) => (
-                <option key={semester} value={semester}>
-                  Semestre {semester}
-                </option>
-              ))}
-            </select>
+            <label>
+              Cédula
+              <input name="cedula" required inputMode="numeric" pattern="[0-9]{6,20}" placeholder="Cédula (solo números)" value={values.cedula} onChange={handleChange} />
+            </label>
+            <label>
+              Programa académico
+              <select name="idPrograma" required value={values.idPrograma} onChange={handleChange}>
+                <option value="">Programa del estudiante</option>
+                <OptionList items={programs} valueKey="id_programa" labelKey="nombre_programa" />
+              </select>
+            </label>
+            <label>
+              Semestre
+              <select name="semestre" required value={values.semestre} onChange={handleChange}>
+                <option value="">Semestre del estudiante</option>
+                {SEMESTERS.map((semester) => (
+                  <option key={semester} value={semester}>
+                    Semestre {semester}
+                  </option>
+                ))}
+              </select>
+            </label>
           </>
         )}
         <button className="btn-form" disabled={pending}>

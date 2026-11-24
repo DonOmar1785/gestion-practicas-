@@ -1,61 +1,33 @@
 import PropTypes from "prop-types";
-import { MANAGED_RESOURCES } from "../../config/editable.js";
-import DataTable from "../DataTable.jsx";
-import ManagementTable from "../ManagementTable.jsx";
-import Section from "../Section.jsx";
+import ManagedRecords from "../ManagedRecords.jsx";
+import { RecordList, Views } from "../WorkArea.jsx";
 import UserForm from "./UserForm.jsx";
 import ProgramForm from "./ProgramForm.jsx";
 import InstitutionForm from "./InstitutionForm.jsx";
 
-// Pantalla "Gestión académica": indicadores, formularios de creación y tablas.
-export default function AcademicForms({ data, isDirector, onChanged }) {
+export default function AcademicForms({ data, onChanged }) {
   const users = data.users || [];
   const programs = data.programs || [];
   const institutions = data.institutions || [];
 
-  return (
-    <>
-      <UserForm programs={programs} onSaved={onChanged} />
-      <ProgramForm onSaved={onChanged} />
-      <InstitutionForm onSaved={onChanged} />
-
-      <Section title="Usuarios registrados">
-        {isDirector ? (
-          <ManagementTable
-            rows={users}
-            resource="users"
-            idField={MANAGED_RESOURCES.users.idField}
-            editableFields={MANAGED_RESOURCES.users.fields}
-            onChanged={onChanged}
-          />
-        ) : (
-          <DataTable rows={users} />
-        )}
-      </Section>
-
-      <Section title="Programas académicos">
-        <DataTable rows={programs} />
-      </Section>
-
-      <Section title="Instituciones">
-        {isDirector ? (
-          <ManagementTable
-            rows={institutions}
-            resource="institutions"
-            idField={MANAGED_RESOURCES.institutions.idField}
-            editableFields={MANAGED_RESOURCES.institutions.fields}
-            onChanged={onChanged}
-          />
-        ) : (
-          <DataTable rows={institutions} />
-        )}
-      </Section>
-    </>
-  );
+  return <Views choices={[
+    { id: "users", title: "Personas", content: <Views choices={[
+      { id: "list", title: "Buscar usuarios", content: <ManagedRecords rows={users} resource="users" onChanged={onChanged} /> },
+      { id: "create", title: "Registrar usuario", content: <UserForm programs={programs} onSaved={onChanged} /> },
+    ]} /> },
+    { id: "institutions", title: "Instituciones", content: <Views choices={[
+      { id: "list", title: "Buscar instituciones", content: <ManagedRecords rows={institutions} resource="institutions" onChanged={onChanged} /> },
+      { id: "create", title: "Registrar institución", content: <InstitutionForm onSaved={onChanged} /> },
+    ]} /> },
+    { id: "programs", title: "Programas", content: <Views choices={[
+      { id: "list", title: "Buscar programas", content: <RecordList empty="Aún no hay programas registrados." records={programs.map((program) => ({
+        id: program.id_programa,
+        title: program.nombre_programa,
+        subtitle: program.facultad,
+      }))} /> },
+      { id: "create", title: "Registrar programa", content: <ProgramForm onSaved={onChanged} /> },
+    ]} /> },
+  ]} />;
 }
 
-AcademicForms.propTypes = {
-  data: PropTypes.object.isRequired,
-  isDirector: PropTypes.bool,
-  onChanged: PropTypes.func.isRequired,
-};
+AcademicForms.propTypes = { data: PropTypes.object.isRequired, onChanged: PropTypes.func.isRequired };

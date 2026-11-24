@@ -149,7 +149,7 @@ export default function LoginPage() {
         )}
 
         <p className="login-footer">
-          Sistema de Gestión de Prácticas Académicas
+          Software de Gestión de Prácticas Académicas
           <br />
         </p>
       </div>
